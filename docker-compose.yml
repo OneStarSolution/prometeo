@@ -1,0 +1,20 @@
+version: '3.7'
+
+services:
+  server:
+    build: ./
+    # for future process
+    # command: python app/main.py
+    volumes:
+      - ./:/app
+    ports:
+      - 8000:8000
+    stdin_open: true # docker run -i
+    tty: true        # docker run -t
+    environment:
+      - ENVIRONMENT=dev
+      - TESTING=0
+      - PYTHONPATH=/app
+    env_file:
+      - ./config/development.all.env
+      - ./config/secrets.env
