@@ -1,8 +1,7 @@
 # pull official base image
 FROM python:3.9-slim-buster
 
-# Create and set the working directory to /app
-RUN mkdir -p /app
+# set working directory
 WORKDIR /app
 
 # set environment variables
@@ -23,13 +22,14 @@ RUN apt-get install -y libxml2-dev libxslt-dev python-dev
 # Install geckodriver for Firefox
 RUN wget -q https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-linux64.tar.gz \
     && tar -xvzf geckodriver-v0.24.0-linux64.tar.gz -C /usr/local/share/ \
-    && chmod +x /usr/local/share/geckodriver
-    # && ln -s /usr/local/share/geckodriver /app
+    && chmod +x /usr/local/share/geckodriver \
+    && ln -s /usr/local/share/geckodriver /app/app
+
 
 # install python dependencies
-# RUN pip install --upgrade pip
-COPY requirements.txt .
+RUN pip install --upgrade pip
+COPY ./requirements.txt .
 RUN pip install -r requirements.txt
 
-# Copy the current directory contents into the container at /app
-COPY . /app
+# add app
+COPY . .

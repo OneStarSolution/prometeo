@@ -9,6 +9,7 @@ services:
       - ./:/app
     ports:
       - 8000:8000
+    shm_size: 2gb
     stdin_open: true # docker run -i
     tty: true        # docker run -t
     environment:
