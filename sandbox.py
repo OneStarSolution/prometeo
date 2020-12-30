@@ -1,5 +1,9 @@
+import math
 import time
 import pandas as pd
+
+from math import ceil
+from concurrent.futures import ProcessPoolExecutor
 
 from fetchers.yelp.YELPFetcherController import YELPFetcherController
 from fetchers.yelp.YELPFetcherDocument import YELPFetcherDocument
@@ -10,15 +14,21 @@ url = 'https://www.yelp.com/biz/whitehorse-plumbing-albuquerque-2'
 url_2 = 'https://www.yelp.com/biz/lawson-family-plumbing-phoenix'
 
 
-def YELPController_run_sample():
-    f = YELPFetcherController(url)
-    html = f._read_web()
+def YELPController_run_sample(url):
+    d = {}
+    try:
+        f = YELPFetcherController(url)
+        html = f._read_web()
 
-    d = YELPFetcherDocument(url)
-    d.setData(html)
+        d = YELPFetcherDocument(url)
+        d.setData(html)
 
-    df = pd.DataFrame([vars(d)])
-    df.to_csv("test.csv")
+        # df = pd.DataFrame([vars(d).get('summary', {})])
+        # df.to_csv("test.csv")
+    except Exception as e:
+        print(e)
+    finally:
+        return vars(d).get('summary', {})
 
 
 def YELPClient_run_sample(category: str, location: str):
@@ -30,8 +40,6 @@ def YELPClient_run_sample(category: str, location: str):
             print(f"There're no business in this area: {location}")
             return 1
 
-        df = pd.DataFrame(business)
-        df.to_csv(f"yelp_data/{category}_{location}.csv")
         return 1
     except Exception as e:
         print(e)
@@ -63,4 +71,61 @@ def run():
         time.sleep(1)
 
 
-run()
+def run_yelpfc_parallel(url):
+    url = f'https://www.yelp.com/{url}'
+    print(url)
+    try:
+        doc = YELPController_run_sample(url.strip().replace('\n', ''))
+        doc['original_url'] = url
+        return doc
+    except Exception as e:
+        return {}
+
+
+def run_yelpfc_parallel_chunk():
+    # read file
+    urls = pd.read_csv('urls.csv')['source_url'][2000:2500]
+
+    workers = 4
+    urls_docs = []
+
+    with ProcessPoolExecutor(max_workers=workers) as executor:
+        futures = [
+            executor.submit(
+                run_yelpfc_parallel, url) for url in urls
+        ]
+
+    for future in futures:
+        res = future.result()
+        if res:
+            urls_docs.append(res)
+
+    df = pd.DataFrame(urls_docs)
+    df.to_csv("urls_crawled.csv")
+
+
+def run_yelpfc_seq():
+    # read file
+    urls = pd.read_csv('urls.csv')['source_url'][:8]
+    docs = []
+    for url in urls:
+        url = f'https://www.yelp.com/{url}'
+        print(url)
+        try:
+            doc = YELPController_run_sample(url.strip().replace('\n', ''))
+        except Exception as e:
+            continue
+        doc['original_url'] = url
+        if doc:
+            docs.append(doc)
+    df = pd.DataFrame(docs)
+    df.to_csv("urls_crawled.csv")
+    return docs
+
+
+# print(run_yelpfc_seq())
+s = time.perf_counter()
+run_yelpfc_parallel_chunk()
+print("total_time: ", time.perf_counter() - s)
+# print((YELPController_run_sample(
+#     'https://www.yelp.com/biz/j-and-m-construction-services-dover')))
