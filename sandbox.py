@@ -84,24 +84,28 @@ def run_yelpfc_parallel(url):
 
 def run_yelpfc_parallel_chunk():
     # read file
-    urls = pd.read_csv('urls.csv')['source_url'][2000:2500]
+    urls = pd.read_csv('urls.csv')['source_url'][2500:4000]
 
     workers = 4
     urls_docs = []
 
-    with ProcessPoolExecutor(max_workers=workers) as executor:
-        futures = [
-            executor.submit(
-                run_yelpfc_parallel, url) for url in urls
-        ]
+    try:
+        with ProcessPoolExecutor(max_workers=workers) as executor:
+            futures = [
+                executor.submit(
+                    run_yelpfc_parallel, url) for url in urls
+            ]
 
-    for future in futures:
-        res = future.result()
-        if res:
-            urls_docs.append(res)
+        for future in futures:
+            res = future.result()
+            if res:
+                urls_docs.append(res)
 
-    df = pd.DataFrame(urls_docs)
-    df.to_csv("urls_crawled.csv")
+    except Exception as e:
+        print(e)
+    finally:
+        df = pd.DataFrame(urls_docs)
+        df.to_csv("urls_crawled.csv")
 
 
 def run_yelpfc_seq():
