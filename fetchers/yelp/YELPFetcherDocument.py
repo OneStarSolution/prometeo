@@ -2,7 +2,7 @@ import logging
 import re
 
 from bs4 import BeautifulSoup
-from FetcherDocument import FetcherDocument
+from fetchers.FetcherDocument import FetcherDocument
 
 
 # This is not the robust regex, it's being used for test porpuses only.
