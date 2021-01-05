@@ -17,7 +17,7 @@ NUMBER_YELP_API_TOKENS = len(YELP_API_TOKENS)
 
 def get_mongo_url():
     ''' Returns proper mongo connection URL from env file. '''
-    return f'mongodb+srv://{NOSQL_HOST}:{NOSQL_PORT}/'
+    return f'mongodb+srv://{NOSQL_HOST}/'
 
 
 def get_yelp_token():
