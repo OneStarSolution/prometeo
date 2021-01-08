@@ -1,4 +1,5 @@
 import re
+import os
 
 from fetchers.yelp.YELPFetcherController import YELPFetcherController
 from fetchers.IngestController import IngestController
@@ -6,7 +7,7 @@ from fetchers.IngestController import IngestController
 
 class YELPIngestController(IngestController):
 
-    COUNTY = "YELP"
+    SOURCE = "YELP"
     CONFIG_FILE_NAME = "YELP_config.yaml"
 
     def __next__(self):
@@ -27,16 +28,16 @@ class YELPIngestController(IngestController):
         """Creates ingest controller and appends all scopes in config
         :param config: yaml config file in dict form
         """
-        iictl = cls()
+        ictl = cls()
         states = config.get("States")
         for state in states:
-            zipcodes = state.get("Zipcodes")
-            for zipcode in zipcodes:
-                scope = {}
-                scope["zipcode"] = zipcode
-                scope["start"] = zipcode.get("begin", 0)
-                scope["end"] = zipcode.get("end", 0)
-                ictl.addScope(state + zipcode, scope)
+            state_range = state.get("Range")
+            scope = {}
+            scope["state"] = state.get('State')
+            scope["start"] = state_range.get("begin", 0)
+            scope["end"] = state_range.get("end", 0)
+            print(scope)
+            ictl.addScope(f'{cls.SOURCE}_{state}', scope)
         return ictl
 
     def formatDownStreamScope(self, current):

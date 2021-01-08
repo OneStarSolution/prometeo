@@ -84,7 +84,7 @@ def run_yelpfc_parallel(url):
 
 def run_yelpfc_parallel_chunk():
     # read file
-    urls = pd.read_csv('urls.csv')['source_url'][4000:4500]
+    urls = pd.read_csv('urls.csv')['source_url'][4000:4032]
 
     workers = 4
     urls_docs = []
@@ -150,11 +150,14 @@ def attach_phones():
     return df
 
 
-attach_phones().to_excel('yelp_merged_with_numbers.xlsx')
-#join_read_files('urls_crawled', 17).to_csv('yelp_merged.csv', index=False)
+# attach_phones().to_excel('yelp_merged_with_numbers.xlsx')
+# join_read_files('urls_crawled', 17).to_csv('yelp_merged.csv', index=False)
 # print(run_yelpfc_seq())
 # s = time.perf_counter()
 # run_yelpfc_parallel_chunk()
 # print("total_time: ", time.perf_counter() - s)
 # print((YELPController_run_sample(
 #     'https://www.yelp.com/biz/j-and-m-construction-services-dover')))
+
+
+print(YELPController_run_sample(url))

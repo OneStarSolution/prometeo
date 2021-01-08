@@ -1,7 +1,8 @@
-import logging
 import re
+import json
+import logging
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 from fetchers.FetcherDocument import FetcherDocument
 
 
@@ -49,6 +50,9 @@ class YELPFetcherDocument(FetcherDocument):
         return soup
 
     def parse_summary(self, soup: BeautifulSoup):
+        # Get business_id
+        # self.summary['business_id'] = self.get_business_id(soup)
+
         # Get website
         self.summary['website'] = self.get_website(soup)
 
@@ -69,6 +73,19 @@ class YELPFetcherDocument(FetcherDocument):
         self.summary['contact_name'] = contact_name or None
 
         self.summary['contact_role'] = contact_role or None
+
+    def get_business_id(self, soup: BeautifulSoup):
+        # Find the contact section (last one)
+        try:
+            script = soup.find_all('script', type='application/json')[-2]
+            comment = script.find(text=lambda text: isinstance(text, Comment))
+            commentsoup = BeautifulSoup(comment, 'html.parser')
+            print(commentsoup.text)
+            script_content = json.loads(commentsoup.text)
+            return script_content.get('business_id')
+        except Exception as e:
+            print("error finding the business_id", e)
+            return None
 
     def get_website(self, soup: BeautifulSoup):
         # Find the contact section (last one)
@@ -135,7 +152,7 @@ class YELPFetcherDocument(FetcherDocument):
             'div', {'aria-labelledby': re.compile(BUSINESS_OWNER_REGEX)})
 
         if not container:
-            print("There is no a container of business info")
+            print("There is no a container of contact info")
             return None, None
 
         paragraphs = container.find_all('p', recursive=True)

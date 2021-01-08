@@ -1,6 +1,8 @@
 import os
 import logging
 
+from pydantic import HttpUrl
+
 import requests
 
 from db.PrometeoDB import PrometeoDB
@@ -13,7 +15,40 @@ TOO_MANY_REQUEST_ERROR_CODE = 429
 class YELPClientController:
 
     def __init__(self) -> None:
-        self.url_base = "https://api.yelp.com/v3/businesses/search"
+        self.BUSINESS_SEARCH_ENDPOINT = "https://api.yelp.com/v3/businesses/search"
+        self.BUSINESS_DETAILS_ENDPOINT = "https://api.yelp.com/v3/businesses"
+
+    def get(self, endpoint: HttpUrl, params: dict = None, headers: dict = None):
+        # preparing request
+        token_generator = get_yelp_token()
+        token = next(token_generator)
+
+        bearer_token = {"Authorization": f"Bearer {token}"}
+
+        headers = headers | bearer_token if headers else bearer_token
+
+        # get request
+        result = requests.get(endpoint, params=params, headers=headers)
+
+        # Swith token if 429 error is returned by the API
+        for i in range(NUMBER_YELP_API_TOKENS):
+            print("entre", result.status_code, result)
+            if result.status_code == TOO_MANY_REQUEST_ERROR_CODE:
+                print(f'Changing token because ACCESS_LIMIT_REACHED')
+
+                try:
+                    token = next(token_generator)
+                    headers = headers | bearer_token if headers else bearer_token
+                except StopIteration:
+                    print("All the tokens have been used. Exiting!")
+                    return None
+
+                result = requests.get(endpoint, params=params, headers=headers)
+            # Token was changed so break loop
+            else:
+                break
+
+        return result
 
     def fetch(self, category: str, location: str, radius: int = 12875):
 
@@ -30,31 +65,8 @@ class YELPClientController:
             'radius': radius
         }
 
-        # preparing request
-        token_generator = get_yelp_token()
-        token = next(token_generator)
-        headers = {"Authorization": f"Bearer {token}"}
         # get request
-        result = requests.get(self.url_base, params=params, headers=headers)
-
-        # Swith token if 429 error is returned by the API
-        for i in range(NUMBER_YELP_API_TOKENS):
-            print("entre", result.status_code, result)
-            if result.status_code == TOO_MANY_REQUEST_ERROR_CODE:
-                print(f'Changing token because ACCESS_LIMIT_REACHED')
-
-                try:
-                    token = next(token_generator)
-                    headers = {"Authorization": f"Bearer {token}"}
-                except StopIteration:
-                    print("All the tokens have been used. Exiting!")
-                    return
-
-                result = requests.get(
-                    self.url_base, params=params, headers=headers)
-            # Token was changed so break loop
-            else:
-                break
+        result = self.get(self.BUSINESS_SEARCH_ENDPOINT, params=params)
 
         i = 0
         for business in result.json().get('businesses', []):
@@ -86,6 +98,12 @@ class YELPClientController:
                 # jOHNs -> 2021
 
         return result.json().get('businesses', [])
+
+    def fetch_business_details(self, business_id: str):
+        print(
+            f"Attempting to fetch business details from API: {business_id}")
+
+        return self.get(f'{self.BUSINESS_DETAILS_ENDPOINT}/{business_id}')
 
     def business_in_db(self, category: str, location: str):
         return False

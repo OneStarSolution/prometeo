@@ -1,15 +1,25 @@
+import os
 import yaml
 
 
 class IngestController:
 
     CONFIG_FILE_NAME = ""
+    SOURCE = ""
+
+    def __init__(self, *args, **kwargs):
+        self._scopes = {}
 
     def __iter__(self):
         return self
 
     def __next__(self):
         raise NotImplementedError()
+
+    def get_source_db_name(self):
+        if not self.SOURCE:
+            raise FetcherError("Unassigned SOURCE name variable")
+        return self.SOURCE
 
     def formatDownStreamScope(self, current):
         """
@@ -22,15 +32,25 @@ class IngestController:
         raise NotImplementedError()
 
     @classmethod
+    def config_file_path(cls):
+        """Declares name of config file"""
+
+        if not cls.CONFIG_FILE_NAME:
+            raise FetcherError("Unassigned CONFIG_FILE_NAME class variable")
+
+        return os.path.join(os.path.dirname(__file__), cls.SOURCE, cls.CONFIG_FILE_NAME)
+
+    @classmethod
     def load_config(cls):
-        with open(cls.CONFIG_FILE_NAME, 'r') as stream:
-            return cls.instanciate_config(yaml.load(stream))
+        filename = cls.config_file_path()
+        with open(filename, 'r') as stream:
+            return cls.instanciate_config(yaml.load(stream, Loader=yaml.FullLoader))
 
     def addScope(self, name, scope):
         if not isinstance(scope, dict):
             raise Exception("Scope is Incorrectly built")
         if "caseClass" not in scope:
-            scope["caseClass"] = self.getCaseDBClass()
+            scope["caseClass"] = self.get_source_db_name()
         self._scopes[name] = scope
 
     def getCurrentScope(self):
