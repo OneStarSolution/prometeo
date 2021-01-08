@@ -17,11 +17,11 @@ class YELPIngestController(IngestController):
             raise StopIteration
         else:
             self.current += 1
-            caseType = self.getCurrentScope().get("caseType", "")
-            caseYear = self.getCurrentScope().get("caseYear", "")
-            caseNumber = str(self.current).zfill(2)
+            # caseType = self.getCurrentScope().get("caseType", "")
+            # caseYear = self.getCurrentScope().get("caseYear", "")
+            caseNumber = str(self.current).zfill(5)
 
-            return f"{caseType}-{caseYear}{caseNumber}"
+            return f"{caseNumber}"
 
     @classmethod
     def instanciate_config(cls, config):
@@ -31,30 +31,14 @@ class YELPIngestController(IngestController):
         ictl = cls()
         states = config.get("States")
         for state in states:
+            state_name = state.get('State')
             state_range = state.get("Range")
             scope = {}
-            scope["state"] = state.get('State')
+            scope["state"] = state_name
             scope["start"] = state_range.get("begin", 0)
             scope["end"] = state_range.get("end", 0)
-            print(scope)
-            ictl.addScope(f'{cls.SOURCE}_{state}', scope)
+            ictl.addScope(f'{cls.SOURCE}_{state_name}', scope)
         return ictl
-
-    def formatDownStreamScope(self, current):
-        """Creates scope from current case number
-        :param current: case number of current iteration
-        """
-        scope = self.getCurrentScope()
-        if not scope:
-            scope = {}
-
-        caseType = self.getCurrentScope().get("caseType", "")
-        caseYear = self.getCurrentScope().get("caseYear", "")
-
-        prefix = "{}-{}".format(caseType, caseYear)
-        current = re.sub("^{}".format(prefix), "", current)
-        scope.update({"caseNumber": current})
-        return scope
 
 
 def run_sample():
@@ -63,11 +47,9 @@ def run_sample():
 
     for case in ic.get_needed_case_numbers():
         cases.append(case)
-        if len(cases) > 3:
-            break
 
     for case in cases:
-        print("Case ->", case)
+        print("Task ->", case)
         # fetcher = YELPFetcherController()
         # fetcher.setScope(**case)
         # print(fetcher.getCaseIDString())

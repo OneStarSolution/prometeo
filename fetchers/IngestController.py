@@ -9,6 +9,8 @@ class IngestController:
 
     def __init__(self, *args, **kwargs):
         self._scopes = {}
+        self.scope = None
+        self.current = 0
 
     def __iter__(self):
         return self
@@ -50,7 +52,7 @@ class IngestController:
         if not isinstance(scope, dict):
             raise Exception("Scope is Incorrectly built")
         if "caseClass" not in scope:
-            scope["caseClass"] = self.get_source_db_name()
+            scope["source"] = self.get_source_db_name()
         self._scopes[name] = scope
 
     def getCurrentScope(self):
@@ -58,7 +60,7 @@ class IngestController:
             return self._scopes.get(self.scope)
         return {}
 
-    def getAllScopesNames(self):
+    def get_all_scope_names(self):
         return list(self._scopes.keys())
 
     def setCurrentScope(self, name):
@@ -71,69 +73,51 @@ class IngestController:
         """Resets current scope the first one in a range"""
         self.current = self.getCurrentScope().get("start", 0)-1
 
-    def get_config_case_numbers(self):
+    def get_recently_crawled_case_numbers(self):
+        """
+        Check the fetched collection and get a list of case records that have not been crawled in 180 days.
+        """
+        return {}
+        fetched = self._get_db_case_collection()
+        reference_time = datetime.datetime.today() - datetime.timedelta(days=60)
+        query = {"CLASS": self.getCaseDBClass(),
+                 "LAST_CRAWLED": {"$gt": reference_time}}
+        recently_crawled = fetched.find(
+            query, {"ID": 1}, no_cursor_timeout=True)
+        arr = [x.get("ID") for x in recently_crawled]
+        d = dict.fromkeys(arr, 1)
+        return d
+
+    def get_needed_case_numbers(self):
         """Return a generator of a dict of cases left to crawl from config,
         exlcuidng all invalid cases, cases in database, and if not recrawling,
         recent crawled cases
         """
-        # Get a dictionary of all cases for this county
-        cases_on_db = self.get_case_numbers_on_db()
-        # exclude the ones we have checked
-        cases_ignore = self.get_all_invalid_case_numbers()
-        # get a dictionary of all cases that were recently crawled
-        cases_recently_crawled = self.get_recently_crawled_case_numbers()
 
-        for scopename in self.getAllScopesNames():
-            self.setCurrentScope(scopename)
-            self.resetCurrentScope()
-            for caseno in self:
-                # Create list of verifcations
-                verifications = []
-                # check if the current case is on the db.
-                verifications.append(cases_on_db.get(caseno))
-                # Check if the current case is invalid
-                verifications.append(cases_ignore.get(caseno))
-                # check if the currently case was crawled recently
-                verifications.append(cases_recently_crawled.get(caseno))
-                # if the current case does not fit at least one
-                # verification, add it to dict
-                if not any(verifications):
-                    yield caseno
-
-    def get_needed_case_numbers(self):
-        return []
-        # Get a dictionary of all cases for this county
-        cases_on_db = self.get_case_numbers_on_db()
-        # exclude the ones we have checked
-        if self.ignore_all_invalids:
-            cases_ignore = self.get_all_invalid_case_numbers()
-        else:
-            cases_ignore = self.get_invalid_case_numbers()
+        # # Get a dictionary of all cases for this county
+        # cases_on_db = self.get_case_numbers_on_db()
+        # # exclude the ones we have checked
+        # if self.ignore_all_invalids:
+        #     cases_ignore = self.get_all_invalid_case_numbers()
+        # else:
+        #     cases_ignore = self.get_invalid_case_numbers()
         # get a dictionary of all cases that were recently crawled.
         cases_recently_crawled = self.get_recently_crawled_case_numbers()
 
-        # Getting cases for fast crawl if applicable
-        if self.getCaseDBClass() in self.rapid_recrawl:
-            cases_to_fast_crawl = self.get_recently_created_for_fast_crawl()
-
-        for scopename in self.getAllScopesNames():
+        for scopename in self.get_all_scope_names()[:2]:
+            print(scopename)
             self.setCurrentScope(scopename)
             self.resetCurrentScope()
-            for caseno in self:
-                # check if the current case is on the db.
-                on_db = cases_on_db.get(caseno)
+            for zipcode in self:
                 # check if the currently case was crawled recently
-                recently_crawled = cases_recently_crawled.get(caseno)
-                # Check if the current case is invalid
-                invalid = cases_ignore.get(caseno)
-                # if the current case is not on the db (or on the db and not open)
-                # and is not valid and wasn't recently crawled.
-                # crawl that case.
-                if not on_db and not invalid and not recently_crawled:
-                    yield dict(self.formatDownStreamScope(caseno))
+                recently_crawled = cases_recently_crawled.get(zipcode)
 
-                # Rapid recrawl logic
-                if self.getCaseDBClass() in self.rapid_recrawl:
-                    case_in_fast_crawl = cases_to_fast_crawl.get(caseno)
-                    if case_in_fast_crawl:
-                        yield dict(self.formatDownStreamScope(caseno))
+                # if the current zipcode was not crawled recently, crawl that case.
+                if not recently_crawled:
+                    scope = self.getCurrentScope()
+
+                    if not scope:
+                        scope = {}
+
+                    scope.update({"zipcode": zipcode})
+                    yield dict(scope)
