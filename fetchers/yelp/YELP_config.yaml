@@ -1,18 +1,6 @@
 name: US
 
 States:
-- State: NY
-  Range:
-    begin: 10001
-    end: 14925
-- State: PA
-  Range:
-    begin: 15001
-    end: 19640
-- State: DE
-  Range:
-    begin: 19701
-    end: 19988
 - State: DC
   Range:
     begin: 20001

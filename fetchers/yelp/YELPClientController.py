@@ -1,5 +1,5 @@
-import os
 import logging
+import datetime
 
 from pydantic import HttpUrl
 
@@ -13,6 +13,7 @@ TOO_MANY_REQUEST_ERROR_CODE = 429
 
 
 class YELPClientController:
+    SOURCE = "YELP"
 
     def __init__(self) -> None:
         self.BUSINESS_SEARCH_ENDPOINT = "https://api.yelp.com/v3/businesses/search"
@@ -41,7 +42,7 @@ class YELPClientController:
                     headers = headers | bearer_token if headers else bearer_token
                 except StopIteration:
                     print("All the tokens have been used. Exiting!")
-                    return None
+                    raise StopIteration
 
                 result = requests.get(endpoint, params=params, headers=headers)
             # Token was changed so break loop
@@ -51,6 +52,11 @@ class YELPClientController:
         return result
 
     def fetch(self, category: str, location: str, radius: int = 12875):
+        with PrometeoDB() as db:
+            fetch_attempts_col = db.get_fetch_attempts()
+            fetch_attempt_dict = {'SOURCE': self.SOURCE, "LOCATION": location,
+                                  "TIME": datetime.datetime.now()}
+            fetch_attempts_col.insert_one(fetch_attempt_dict)
 
         if self.business_in_db(category, location):
             return
@@ -68,14 +74,13 @@ class YELPClientController:
         # get request
         result = self.get(self.BUSINESS_SEARCH_ENDPOINT, params=params)
 
-        i = 0
+        if not result:
+            return
+
         for business in result.json().get('businesses', []):
             print(
                 f"Check business: {business.get('name')} ")
 
-            if i > 2:
-                break
-            i += 1
             # Skip business without phone numbers
             if not business.get('phone'):
                 continue
@@ -94,8 +99,6 @@ class YELPClientController:
                     continue
                 # else add it
                 yelp_db.insert(business)
-                # jOHNs -> 2020
-                # jOHNs -> 2021
 
         return result.json().get('businesses', [])
 

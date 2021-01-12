@@ -8,6 +8,7 @@ from concurrent.futures import ProcessPoolExecutor
 from fetchers.yelp.YELPFetcherController import YELPFetcherController
 from fetchers.yelp.YELPFetcherDocument import YELPFetcherDocument
 from fetchers.yelp.YELPClientController import YELPClientController
+from fetchers.yelp.YELPIngestController import YELPIngestController
 
 
 url = 'https://www.yelp.com/biz/whitehorse-plumbing-albuquerque-2'
@@ -108,6 +109,29 @@ def run_yelpfc_parallel_chunk():
         df.to_csv("urls_crawled.csv")
 
 
+def run_client(location):
+    YELPClientController().fetch("plumbing", location)
+
+
+def run_yelpfclient_parallel():
+
+    workers = 4
+    ic = YELPIngestController.load_config()
+
+    try:
+        with ProcessPoolExecutor(max_workers=workers) as executor:
+            futures = [
+                executor.submit(
+                    run_client, job.get('zipcode')) for job in ic.get_needed_case_numbers()
+            ]
+
+    except StopIteration as e:
+        print(e)
+        return
+    except Exception as e:
+        print(e)
+
+
 def run_yelpfc_seq():
     # read file
     urls = pd.read_csv('urls.csv')['source_url'][:8]
@@ -160,4 +184,9 @@ def attach_phones():
 #     'https://www.yelp.com/biz/j-and-m-construction-services-dover')))
 
 
-print(YELPController_run_sample(url))
+# print(YELPController_run_sample(url))
+# category, location = "plumbing", "10095"
+# print(YELPClientController().fetch(category, location))
+
+
+run_yelpfclient_parallel()

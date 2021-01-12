@@ -47,6 +47,8 @@ def run_sample():
 
     for case in ic.get_needed_case_numbers():
         cases.append(case)
+        if len(cases) > 100:
+            break
 
     for case in cases:
         print("Task ->", case)

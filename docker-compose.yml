@@ -29,8 +29,6 @@ services:
     restart: always
     hostname: mongo_db
     environment:
-      MONGO_INITDB_ROOT_USERNAME: root
-      MONGO_INITDB_ROOT_PASSWORD: root
       MONGO_INITDB_DATABASE: prometeo_db
     ports:
-        - "27017:27017"
+        - "27019:27017"

@@ -1,5 +1,8 @@
 import os
 import yaml
+import datetime
+
+from db.PrometeoDB import PrometeoDB
 
 
 class IngestController:
@@ -11,6 +14,13 @@ class IngestController:
         self._scopes = {}
         self.scope = None
         self.current = 0
+        self.db = PrometeoDB()
+
+    def __del__(self):
+        self.db.close()
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.db.close()
 
     def __iter__(self):
         return self
@@ -51,8 +61,8 @@ class IngestController:
     def addScope(self, name, scope):
         if not isinstance(scope, dict):
             raise Exception("Scope is Incorrectly built")
-        if "caseClass" not in scope:
-            scope["source"] = self.get_source_db_name()
+        if "SOURCE" not in scope:
+            scope["SOURCE"] = self.get_source_db_name()
         self._scopes[name] = scope
 
     def getCurrentScope(self):
@@ -73,20 +83,22 @@ class IngestController:
         """Resets current scope the first one in a range"""
         self.current = self.getCurrentScope().get("start", 0)-1
 
-    def get_recently_crawled_case_numbers(self):
+    def get_recently_crawled_zipcodes(self):
         """
-        Check the fetched collection and get a list of case records that have not been crawled in 180 days.
+        Check the fetched collection and get a list of case records that have not been crawled in 60 days.
         """
-        return {}
-        fetched = self._get_db_case_collection()
-        reference_time = datetime.datetime.today() - datetime.timedelta(days=60)
-        query = {"CLASS": self.getCaseDBClass(),
-                 "LAST_CRAWLED": {"$gt": reference_time}}
-        recently_crawled = fetched.find(
-            query, {"ID": 1}, no_cursor_timeout=True)
-        arr = [x.get("ID") for x in recently_crawled]
-        d = dict.fromkeys(arr, 1)
-        return d
+        attemps = self.db.get_fetch_attempts()
+        reference_time = datetime.datetime.today() - datetime.timedelta(days=15)
+        query = {"SOURCE": self.get_source_db_name(),
+                 "TIME": {"$gte": reference_time}}
+
+        recently_crawled = attemps.find(
+            query, {"LOCATION": 1}, no_cursor_timeout=True)
+
+        arr = [x.get("LOCATION") for x in recently_crawled]
+        set_zipcodes = set(arr)
+
+        return set_zipcodes
 
     def get_needed_case_numbers(self):
         """Return a generator of a dict of cases left to crawl from config,
@@ -102,15 +114,16 @@ class IngestController:
         # else:
         #     cases_ignore = self.get_invalid_case_numbers()
         # get a dictionary of all cases that were recently crawled.
-        cases_recently_crawled = self.get_recently_crawled_case_numbers()
+        cases_recently_crawled = self.get_recently_crawled_zipcodes()
+        print("rrecently", cases_recently_crawled)
 
-        for scopename in self.get_all_scope_names()[:2]:
+        for scopename in self.get_all_scope_names():
             print(scopename)
             self.setCurrentScope(scopename)
             self.resetCurrentScope()
             for zipcode in self:
                 # check if the currently case was crawled recently
-                recently_crawled = cases_recently_crawled.get(zipcode)
+                recently_crawled = zipcode in cases_recently_crawled
 
                 # if the current zipcode was not crawled recently, crawl that case.
                 if not recently_crawled:

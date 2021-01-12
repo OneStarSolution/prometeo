@@ -8,6 +8,7 @@ PROMETEO_DB = "prometeo_db"
 
 # Collections
 YELP = "yelp"
+FETCH_ATTEMPTS = "fetch_attempts"
 
 
 class PrometeoDB:
@@ -23,6 +24,9 @@ class PrometeoDB:
 
     def get_yelp_business(self):
         return self.prometeo_db[YELP]
+
+    def get_fetch_attempts(self):
+        return self.prometeo_db[FETCH_ATTEMPTS]
 
     def close(self):
         if self.mongo_client is not None:
