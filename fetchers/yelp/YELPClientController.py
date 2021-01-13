@@ -1,12 +1,12 @@
 import logging
 import datetime
+from utils.yelp_token import get_tokens, get_yelp_token
 
 from pydantic import HttpUrl
 
 import requests
 
 from db.PrometeoDB import PrometeoDB
-from utils.environment import get_yelp_token, NUMBER_YELP_API_TOKENS
 
 
 TOO_MANY_REQUEST_ERROR_CODE = 429
@@ -32,6 +32,7 @@ class YELPClientController:
         result = requests.get(endpoint, params=params, headers=headers)
 
         # Swith token if 429 error is returned by the API
+        NUMBER_YELP_API_TOKENS = len(get_tokens())
         for i in range(NUMBER_YELP_API_TOKENS):
             print("entre", result.status_code, result)
             if result.status_code == TOO_MANY_REQUEST_ERROR_CODE:
@@ -42,7 +43,7 @@ class YELPClientController:
                     headers = headers | bearer_token if headers else bearer_token
                 except StopIteration:
                     print("All the tokens have been used. Exiting!")
-                    raise StopIteration
+                    return
 
                 result = requests.get(endpoint, params=params, headers=headers)
             # Token was changed so break loop
@@ -58,9 +59,6 @@ class YELPClientController:
                                   "TIME": datetime.datetime.now()}
             fetch_attempts_col.insert_one(fetch_attempt_dict)
 
-        if self.business_in_db(category, location):
-            return
-
         logging.info(
             f"Attempting to crawl Yelp using Category: {category}, location: {location},\
               radius: {radius}")
@@ -70,11 +68,11 @@ class YELPClientController:
             'term': category,
             'radius': radius
         }
-
         # get request
         result = self.get(self.BUSINESS_SEARCH_ENDPOINT, params=params)
 
         if not result:
+            print("noo resustls retuurn")
             return
 
         for business in result.json().get('businesses', []):
@@ -107,6 +105,3 @@ class YELPClientController:
             f"Attempting to fetch business details from API: {business_id}")
 
         return self.get(f'{self.BUSINESS_DETAILS_ENDPOINT}/{business_id}')
-
-    def business_in_db(self, category: str, location: str):
-        return False

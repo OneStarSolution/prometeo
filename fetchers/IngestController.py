@@ -1,4 +1,5 @@
 import os
+from utils.yelp_token import get_request_available
 import yaml
 import datetime
 
@@ -7,7 +8,8 @@ from db.PrometeoDB import PrometeoDB
 
 class IngestController:
 
-    CONFIG_FILE_NAME = ""
+    ZIPCODES_CONFIG_FILE_NAME = ""
+    CATEGORIES_CONFIG_FILE_NAME = ""
     SOURCE = ""
 
     def __init__(self, *args, **kwargs):
@@ -30,7 +32,7 @@ class IngestController:
 
     def get_source_db_name(self):
         if not self.SOURCE:
-            raise FetcherError("Unassigned SOURCE name variable")
+            raise Exception("Unassigned SOURCE name variable")
         return self.SOURCE
 
     def formatDownStreamScope(self, current):
@@ -44,19 +46,29 @@ class IngestController:
         raise NotImplementedError()
 
     @classmethod
-    def config_file_path(cls):
+    def config_file_paths(cls):
         """Declares name of config file"""
 
-        if not cls.CONFIG_FILE_NAME:
-            raise FetcherError("Unassigned CONFIG_FILE_NAME class variable")
+        if not cls.ZIPCODES_CONFIG_FILE_NAME:
+            raise FetcherError(
+                "Unassigned ZIPCODES_CONFIG_FILE_NAME class variable")
 
-        return os.path.join(os.path.dirname(__file__), cls.SOURCE, cls.CONFIG_FILE_NAME)
+        if not cls.CATEGORIES_CONFIG_FILE_NAME:
+            raise FetcherError(
+                "Unassigned CATEGORIES_CONFIG_FILE_NAME class variable")
+
+        return (os.path.join(os.path.dirname(__file__), cls.SOURCE, cls.ZIPCODES_CONFIG_FILE_NAME),
+                os.path.join(os.path.dirname(__file__), cls.SOURCE,
+                             cls.CATEGORIES_CONFIG_FILE_NAME))
 
     @classmethod
     def load_config(cls):
-        filename = cls.config_file_path()
-        with open(filename, 'r') as stream:
-            return cls.instanciate_config(yaml.load(stream, Loader=yaml.FullLoader))
+        zipcode_filename, categories_filename = cls.config_file_paths()
+        with open(zipcode_filename, 'r') as zipcode_config:
+            with open(categories_filename, 'r') as categories_config:
+                return cls.instanciate_config(
+                    yaml.load(zipcode_config, Loader=yaml.FullLoader),
+                    yaml.load(categories_config, Loader=yaml.FullLoader))
 
     def addScope(self, name, scope):
         if not isinstance(scope, dict):
@@ -115,13 +127,18 @@ class IngestController:
         #     cases_ignore = self.get_invalid_case_numbers()
         # get a dictionary of all cases that were recently crawled.
         cases_recently_crawled = self.get_recently_crawled_zipcodes()
-        print("rrecently", cases_recently_crawled)
+
+        limit = get_request_available()
+        print("limit", limit)
+        i = 0
 
         for scopename in self.get_all_scope_names():
-            print(scopename)
             self.setCurrentScope(scopename)
             self.resetCurrentScope()
             for zipcode in self:
+                if i >= 2:
+                    print("No more queries available")
+                    raise StopIteration
                 # check if the currently case was crawled recently
                 recently_crawled = zipcode in cases_recently_crawled
 
@@ -133,4 +150,5 @@ class IngestController:
                         scope = {}
 
                     scope.update({"zipcode": zipcode})
+                    i += 1
                     yield dict(scope)

@@ -109,8 +109,8 @@ def run_yelpfc_parallel_chunk():
         df.to_csv("urls_crawled.csv")
 
 
-def run_client(location):
-    YELPClientController().fetch("plumbing", location)
+def run_client(category, location):
+    YELPClientController().fetch(category, location)
 
 
 def run_yelpfclient_parallel():
@@ -122,7 +122,7 @@ def run_yelpfclient_parallel():
         with ProcessPoolExecutor(max_workers=workers) as executor:
             futures = [
                 executor.submit(
-                    run_client, job.get('zipcode')) for job in ic.get_needed_case_numbers()
+                    run_client, job.get('category'), job.get('zipcode')) for job in ic.get_needed_case_numbers()
             ]
 
     except StopIteration as e:
