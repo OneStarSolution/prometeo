@@ -19,3 +19,16 @@ services:
     env_file:
       - ./config/development.all.env
       - ./config/secrets.env
+    depends_on:
+      - mongo_db
+    links: 
+      - mongo_db
+    
+  mongo_db:
+    image: mongo
+    restart: always
+    hostname: mongo_db
+    environment:
+      MONGO_INITDB_DATABASE: prometeo_db
+    ports:
+        - "27019:27017"
