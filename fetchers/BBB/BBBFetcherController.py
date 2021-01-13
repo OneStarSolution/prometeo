@@ -33,18 +33,7 @@ class BBBFetcherController:
             # As BBB don't use to fail just try to connect directly
             self.driver.get(self.url_base)
 
-            try:
-                # Wait for title be displayed
-                # WebDriverWait(self.driver, self.WAIT_ELEMENT).until(
-                #     expected_conditions.presence_of_element_located(
-                #         (By.XPATH, self.XPATHS.get('title'))
-                #     )
-                # )
-                time.sleep(5)
-            except TimeoutException:
-                logging.info(
-                    "Title is not in the screen after wait. Aborting!")
-                return None
+            # CODE HERE
 
             return self.driver.page_source
         except Exception as e:
