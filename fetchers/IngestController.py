@@ -1,4 +1,5 @@
 import os
+from utils.yelp_token import get_request_available
 import yaml
 import datetime
 
@@ -126,13 +127,20 @@ class IngestController:
         #     cases_ignore = self.get_invalid_case_numbers()
         # get a dictionary of all cases that were recently crawled.
         cases_recently_crawled = self.get_recently_crawled_zipcodes()
-        print("rrecently", cases_recently_crawled)
+
+        limit = get_request_available() - 30500
+        print("limit", limit)
+        i = 0
 
         for scopename in self.get_all_scope_names():
-            print(scopename)
             self.setCurrentScope(scopename)
             self.resetCurrentScope()
             for zipcode in self:
+                print("generated", i)
+                print(i >= limit)
+                if i >= 2:
+                    print("No more queries available")
+                    raise StopIteration
                 # check if the currently case was crawled recently
                 recently_crawled = zipcode in cases_recently_crawled
 
@@ -144,4 +152,6 @@ class IngestController:
                         scope = {}
 
                     scope.update({"zipcode": zipcode})
+                    i += 1
+                    print(scope)
                     yield dict(scope)

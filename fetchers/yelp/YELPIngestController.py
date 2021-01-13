@@ -35,19 +35,23 @@ class YELPIngestController(IngestController):
         categories = categories_config.get("Categories")
         target_categories = [
             category for category in categories if categories[category]]
-        print(target_categories)
 
         for state in states:
             for category in target_categories:
                 state_name = state.get('State')
-                state_range = state.get("Range")
-                scope = {
-                    'category': category,
-                    "state": state_name,
-                    "start": state_range.get("begin", 0),
-                    "end": state_range.get("end", 0),
-                }
-                ictl.addScope(f'{cls.SOURCE}_{state_name}_{category}', scope)
+                state_ranges = state.get("Ranges")
+
+                for i, state_range in enumerate(state_ranges):
+                    print(state_range)
+                    scope = {
+                        'category': category,
+                        "state": state_name,
+                        "start": state_range.get("Range").get("begin", 0),
+                        "end": state_range.get("Range").get("end", 0),
+                    }
+
+                    ictl.addScope(
+                        f'{cls.SOURCE}_{state_name}_{category}_{i}', scope)
 
         return ictl
 
@@ -58,10 +62,10 @@ def run_sample():
 
     for case in ic.get_needed_case_numbers():
         cases.append(case)
-        if len(cases) > 1000:
+        if len(cases) > 3000:
             break
 
-    for case in cases[:10]:
+    for case in cases[-5:]:
         print("Task ->", case)
         # fetcher = YELPFetcherController()
         # fetcher.setScope(**case)
@@ -75,6 +79,3 @@ def run_sample():
         # if document:
         #     print(document)
         #     fetcher.save(document)
-
-
-run_sample()
