@@ -128,7 +128,7 @@ class IngestController:
         # get a dictionary of all cases that were recently crawled.
         cases_recently_crawled = self.get_recently_crawled_zipcodes()
 
-        limit = get_request_available() - 30500
+        limit = get_request_available()
         print("limit", limit)
         i = 0
 
@@ -136,8 +136,6 @@ class IngestController:
             self.setCurrentScope(scopename)
             self.resetCurrentScope()
             for zipcode in self:
-                print("generated", i)
-                print(i >= limit)
                 if i >= 2:
                     print("No more queries available")
                     raise StopIteration
@@ -153,5 +151,4 @@ class IngestController:
 
                     scope.update({"zipcode": zipcode})
                     i += 1
-                    print(scope)
                     yield dict(scope)
