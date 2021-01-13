@@ -1,15 +1,15 @@
 import re
 import os
 
-from fetchers.YELP.YELPFetcherController import YELPFetcherController
+from fetchers.BBB.BBBFetcherController import BBBFetcherController
 from fetchers.IngestController import IngestController
 
 
-class YELPIngestController(IngestController):
+class BBBIngestController(IngestController):
 
-    SOURCE = "YELP"
-    ZIPCODES_CONFIG_FILE_NAME = "YELP_config.yaml"
-    CATEGORIES_CONFIG_FILE_NAME = "YELP_categories.yaml"
+    SOURCE = "BBB"
+    ZIPCODES_CONFIG_FILE_NAME = "BBB_config.yaml"
+    CATEGORIES_CONFIG_FILE_NAME = "BBB_categories.yaml"
 
     def __next__(self):
         """Iterates over scopes to yield case numbers
@@ -57,7 +57,7 @@ class YELPIngestController(IngestController):
 
 
 def run_sample():
-    ic = YELPIngestController.load_config()
+    ic = BBBIngestController.load_config()
     cases = []
 
     for case in ic.get_needed_case_numbers():
@@ -67,7 +67,7 @@ def run_sample():
 
     for case in cases[-5:]:
         print("Task ->", case)
-        # fetcher = YELPFetcherController()
+        # fetcher = BBBFetcherController()
         # fetcher.setScope(**case)
         # print(fetcher.getCaseIDString())
         # document = None
