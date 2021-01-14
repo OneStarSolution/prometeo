@@ -14,13 +14,7 @@ from selenium.webdriver.support import expected_conditions as expected_condition
 class BBBFetcherController:
     WAIT_ELEMENT = 20
     XPATHS = {}
-
-    def __init__(self, url: HttpUrl) -> None:
-        firefox_options = Options()
-        firefox_options.headless = True
-        self.driver = webdriver.Firefox(
-            executable_path="/usr/local/share/geckodriver", options=firefox_options)
-        self.url_base = url
+    BASE_URL = ""
 
     def _read_web(self):
         try:
@@ -31,7 +25,7 @@ class BBBFetcherController:
                 f"Attempting to crawl BBB using business: {self.url_base}")
 
             # As BBB don't use to fail just try to connect directly
-            self.driver.get(self.url_base)
+            self.driver.get(self.BASE_URL)
 
             # CODE HERE
 
