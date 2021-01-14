@@ -5,10 +5,10 @@ import pandas as pd
 from math import ceil
 from concurrent.futures import ProcessPoolExecutor
 
-from fetchers.yelp.YELPFetcherController import YELPFetcherController
-from fetchers.yelp.YELPFetcherDocument import YELPFetcherDocument
-from fetchers.yelp.YELPClientController import YELPClientController
-from fetchers.yelp.YELPIngestController import YELPIngestController
+from fetchers.YELP.YELPFetcherController import YELPFetcherController
+from fetchers.YELP.YELPFetcherDocument import YELPFetcherDocument
+from fetchers.YELP.YELPClientController import YELPClientController
+from fetchers.YELP.YELPIngestController import YELPIngestController
 
 
 url = 'https://www.yelp.com/biz/whitehorse-plumbing-albuquerque-2'

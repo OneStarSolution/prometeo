@@ -105,9 +105,10 @@ class IngestController:
                  "TIME": {"$gte": reference_time}}
 
         recently_crawled = attemps.find(
-            query, {"LOCATION": 1}, no_cursor_timeout=True)
+            query, {"LOCATION": 1, "CATEGORY": 1})
 
-        arr = [x.get("LOCATION") for x in recently_crawled]
+        arr = [(x.get("LOCATION"), x.get("CATEGORY"))
+               for x in recently_crawled]
         set_zipcodes = set(arr)
 
         return set_zipcodes
@@ -140,7 +141,8 @@ class IngestController:
                     print("No more queries available")
                     raise StopIteration
                 # check if the currently case was crawled recently
-                recently_crawled = zipcode in cases_recently_crawled
+                recently_crawled = (
+                    zipcode, self.getCurrentScope().get('category')) in cases_recently_crawled
 
                 # if the current zipcode was not crawled recently, crawl that case.
                 if not recently_crawled:

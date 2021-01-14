@@ -56,7 +56,7 @@ class YELPClientController:
         with PrometeoDB() as db:
             fetch_attempts_col = db.get_fetch_attempts()
             fetch_attempt_dict = {'SOURCE': self.SOURCE, "LOCATION": location,
-                                  "TIME": datetime.datetime.now()}
+                                  'CATEGORY': category, "TIME": datetime.datetime.now()}
             fetch_attempts_col.insert_one(fetch_attempt_dict)
 
         logging.info(
