@@ -1,7 +1,7 @@
 import re
 import os
 
-from fetchers.YELP.YELPFetcherController import YELPFetcherController
+from fetchers.yelp.YELPFetcherController import YELPFetcherController
 from fetchers.IngestController import IngestController
 
 

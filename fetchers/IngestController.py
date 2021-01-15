@@ -57,8 +57,8 @@ class IngestController:
             raise FetcherError(
                 "Unassigned CATEGORIES_CONFIG_FILE_NAME class variable")
 
-        return (os.path.join(os.path.dirname(__file__), cls.SOURCE, cls.ZIPCODES_CONFIG_FILE_NAME),
-                os.path.join(os.path.dirname(__file__), cls.SOURCE,
+        return (os.path.join(os.path.dirname(__file__), cls.SOURCE.lower(), cls.ZIPCODES_CONFIG_FILE_NAME),
+                os.path.join(os.path.dirname(__file__), cls.SOURCE.lower(),
                              cls.CATEGORIES_CONFIG_FILE_NAME))
 
     @classmethod
