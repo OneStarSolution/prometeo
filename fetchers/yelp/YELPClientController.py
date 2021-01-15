@@ -34,7 +34,6 @@ class YELPClientController:
         # Swith token if 429 error is returned by the API
         NUMBER_YELP_API_TOKENS = len(get_tokens())
         for i in range(NUMBER_YELP_API_TOKENS):
-            print("entre", result.status_code, result)
             if result.status_code == TOO_MANY_REQUEST_ERROR_CODE:
                 print(f'Changing token because ACCESS_LIMIT_REACHED')
 
@@ -42,13 +41,11 @@ class YELPClientController:
                     token = next(token_generator)
                     bearer_token = {"Authorization": f"Bearer {token}"}
                     headers = headers | bearer_token if headers else bearer_token
-                    print(headers)
                 except StopIteration:
                     print("All the tokens have been used. Exiting!")
                     return
 
                 result = requests.get(endpoint, params=params, headers=headers)
-                print("token", result.headers.get('ratelimit-remaining'))
             # Token was changed so break loop
             else:
                 break
@@ -62,9 +59,9 @@ class YELPClientController:
                                   'CATEGORY': category, "TIME": datetime.datetime.now()}
             fetch_attempts_col.insert_one(fetch_attempt_dict)
 
-        logging.info(
-            f"Attempting to crawl Yelp using Category: {category}, location: {location},\
-              radius: {radius}")
+        # logging.info(
+        #     f"Attempting to crawl Yelp using Category: {category}, location: {location},\
+        #       radius: {radius}")
 
         params = {
             'location': location,

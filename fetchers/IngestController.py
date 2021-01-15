@@ -137,7 +137,7 @@ class IngestController:
             self.setCurrentScope(scopename)
             self.resetCurrentScope()
             for zipcode in self:
-                if i >= 2:
+                if i >= limit:
                     print("No more queries available")
                     raise StopIteration
                 # check if the currently case was crawled recently
