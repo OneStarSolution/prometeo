@@ -1,6 +1,8 @@
-import logging
+import time
 import datetime
-from utils.yelp_token import get_tokens, get_yelp_token
+import multiprocessing
+
+from utils.yelp_token import get_tokens, get_yelp_token, get_token
 
 from pydantic import HttpUrl
 
@@ -22,7 +24,11 @@ class YELPClientController:
     def get(self, endpoint: HttpUrl, params: dict = None, headers: dict = None):
         # preparing request
         token_generator = get_yelp_token()
-        token = next(token_generator)
+        # get a token assigned depending on process_number
+        process_number = int(
+            multiprocessing.current_process().name.split('-')[-1])
+        token = get_token(process_number)
+        print(f"Token: {process_number} - {token}")
 
         bearer_token = {"Authorization": f"Bearer {token}"}
 
@@ -33,9 +39,11 @@ class YELPClientController:
 
         # Swith token if 429 error is returned by the API
         NUMBER_YELP_API_TOKENS = len(get_tokens())
-        for i in range(NUMBER_YELP_API_TOKENS):
+        for _ in range(NUMBER_YELP_API_TOKENS):
             if result.status_code == TOO_MANY_REQUEST_ERROR_CODE:
-                print(f'Changing token because ACCESS_LIMIT_REACHED')
+                print(
+                    f'Changing token because {result.json().get("error").get("code")}')
+                time.sleep(1)
 
                 try:
                     token = next(token_generator)
@@ -52,7 +60,7 @@ class YELPClientController:
 
         return result
 
-    def fetch(self, category: str, location: str, radius: int = 12875):
+    def fetch(self, category: str, location: str, radius: int = 40000):
         with PrometeoDB() as db:
             fetch_attempts_col = db.get_fetch_attempts()
             fetch_attempt_dict = {'SOURCE': self.SOURCE, "LOCATION": location,
@@ -72,7 +80,7 @@ class YELPClientController:
         result = self.get(self.BUSINESS_SEARCH_ENDPOINT, params=params)
 
         if not result:
-            print("noo resustls retuurn")
+            print("No results")
             return
 
         for business in result.json().get('businesses', []):
@@ -81,6 +89,7 @@ class YELPClientController:
 
             # Skip business without phone numbers
             if not business.get('phone'):
+                print("Skipping due to phone is missing")
                 continue
 
             with PrometeoDB() as db:
@@ -97,6 +106,7 @@ class YELPClientController:
                     continue
                 # else add it
                 yelp_db.insert(business)
+                print("SAVED!")
 
         return result.json().get('businesses', [])
 

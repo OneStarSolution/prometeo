@@ -4,18 +4,18 @@ States:
 - State: DC
   Ranges:
   - Range:
-      begin: 20001
+      begin: 20000
       end: 20098
   - Range:
-      begin: 20201
+      begin: 20200
       end: 20599
   - Range:
-      begin: 56901
+      begin: 56900
       end: 56972
 - State: VA
   Ranges:
   - Range:
-      begin: 20101
+      begin: 20100
       end: 20199
   - Range:
       begin: 22009
@@ -23,12 +23,12 @@ States:
 - State: MD
   Ranges:
   - Range:
-      begin: 20601
+      begin: 20600
       end: 21930
 - State: WV
   Ranges:
   - Range:
-      begin: 24701
+      begin: 24700
       end: 26886
 - State: NC
   Ranges:
@@ -38,7 +38,7 @@ States:
 - State: SC
   Ranges:
   - Range:
-      begin: 29001
+      begin: 29000
       end: 29945
 - State: GA
   Ranges:
@@ -54,12 +54,12 @@ States:
       begin: 32003
       end: 33994
   - Range:
-      begin: 34101
+      begin: 34100
       end: 34997
 - State: AA
   Ranges:
   - Range:
-      begin: 34001
+      begin: 34000
       end: 34099
 - State: AL
   Ranges:
@@ -74,7 +74,7 @@ States:
 - State: MS
   Ranges:
   - Range:
-      begin: 38601
+      begin: 38600
       end: 39776
 - State: KY
   Ranges:
@@ -84,57 +84,57 @@ States:
 - State: OH
   Ranges:
   - Range:
-      begin: 43001
+      begin: 43000
       end: 45999
 - State: IN
   Ranges:
   - Range:
-      begin: 46001
+      begin: 46000
       end: 47997
 - State: MI
   Ranges:
   - Range:
-      begin: 48001
+      begin: 48000
       end: 49971
 - State: IA
   Ranges:
   - Range:
-      begin: 50001
+      begin: 50000
       end: 52809
 - State: WI
   Ranges:
   - Range:
-      begin: 53001
+      begin: 53000
       end: 54990
 - State: MN
   Ranges:
   - Range:
-      begin: 55001
+      begin: 55000
       end: 56763
 - State: SD
   Ranges:
   - Range:
-      begin: 57001
+      begin: 57000
       end: 57799
 - State: ND
   Ranges:
   - Range:
-      begin: 58001
+      begin: 58000
       end: 58856
 - State: MT
   Ranges:
   - Range:
-      begin: 59001
+      begin: 59000
       end: 59937
 - State: IL
   Ranges:
   - Range:
-      begin: 60001
+      begin: 60000
       end: 62999
 - State: MO
   Ranges:
   - Range:
-      begin: 63001
+      begin: 63000
       end: 65899
 - State: KS
   Ranges:
@@ -142,27 +142,27 @@ States:
       begin: 66002
       end: 67954
   - Range:
-      begin: 68001
+      begin: 68000
       end: 69367
 - State: LA
   Ranges:
   - Range:
-      begin: 70001
+      begin: 70000
       end: 71497
 - State: AR
   Ranges:
   - Range:
-      begin: 71601
+      begin: 71600
       end: 72959
 - State: OK
   Ranges:
   - Range:
-      begin: 73001
+      begin: 73000
       end: 74966
 - State: TX
   Ranges:
   - Range:
-      begin: 75001
+      begin: 75000
       end: 79999
   - Range:
       begin: 88510
@@ -170,52 +170,52 @@ States:
 - State: CO
   Ranges:
   - Range:
-      begin: 80001
+      begin: 80000
       end: 81658
 - State: WY
   Ranges:
   - Range:
-      begin: 82001
+      begin: 82000
       end: 83128
 - State: ID
   Ranges:
   - Range:
-      begin: 83201
+      begin: 83200
       end: 83877
 - State: UT
   Ranges:
   - Range:
-      begin: 84001
+      begin: 84000
       end: 84791
 - State: AZ
   Ranges:
   - Range:
-      begin: 85001
+      begin: 85000
       end: 86556
 - State: NM
   Ranges:
   - Range:
-      begin: 87001
+      begin: 87000
       end: 88439
 - State: NV
   Ranges:
   - Range:
-      begin: 88901
+      begin: 88900
       end: 89883
 - State: CA
   Ranges:
   - Range:
-      begin: 90001
+      begin: 90000
       end: 96162
 - State: AP
   Ranges:
   - Range:
-      begin: 96201
+      begin: 96200
       end: 96698
 - State: HI
   Ranges:
   - Range:
-      begin: 96701
+      begin: 96700
       end: 96898
 - State: GU
   Ranges:
@@ -230,7 +230,7 @@ States:
 - State: FM
   Ranges:
   - Range:
-      begin: 96941
+      begin: 96940
       end: 96944
 - State: MP
   Ranges:
@@ -245,55 +245,55 @@ States:
 - State: OR
   Ranges:
   - Range:
-      begin: 97001
+      begin: 97000
       end: 97920
 - State: WA
   Ranges:
   - Range:
-      begin: 98001
+      begin: 98000
       end: 99403
 - State: AK
   Ranges:
   - Range:
-      begin: 99501
+      begin: 99500
       end: 99950
 - State: MA
   Ranges:
   - Range:
-      begin: 1001
+      begin: 1000
       end: 2791
 - State: RI
   Ranges:
   - Range:
-      begin: 2801
+      begin: 2800
       end: 2940
 - State: NH
   Ranges:
   - Range:
-      begin: 3031
+      begin: 3030
       end: 3897
 - State: ME
   Ranges:
   - Range:
-      begin: 3901
+      begin: 3900
       end: 4992
 - State: VT
   Ranges:
   - Range:
-      begin: 5001
+      begin: 5000
       end: 5907
 - State: CT
   Ranges:
   - Range:
-      begin: 6001
+      begin: 6000
       end: 6928
 - State: NJ
   Ranges:
   - Range:
-      begin: 7001
+      begin: 7000
       end: 8989
 - State: AE
   Ranges:
   - Range:
-      begin: 9001
+      begin: 9000
       end: 9898
