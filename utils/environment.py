@@ -10,5 +10,5 @@ NOSQL_HOST = os.environ.get('NOSQL_HOST', 'mongo_db')
 
 def get_mongo_url():
     ''' Returns proper mongo connection URL from env file. '''
-    return f'mongodb+srv://{NOSQL_HOST}/'
-    # return f'mongodb://{NOSQL_HOST}:{NOSQL_PORT}/'
+    # return f'mongodb+srv://{NOSQL_HOST}/'
+    return f'mongodb://{NOSQL_HOST}:{NOSQL_PORT}/'
