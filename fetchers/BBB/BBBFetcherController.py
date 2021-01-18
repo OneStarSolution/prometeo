@@ -1,22 +1,17 @@
 import time
 import requests
-from pydantic import HttpUrl
 
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.webdriver.firefox.options import Options
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import TimeoutException
-from selenium.webdriver.support import expected_conditions as expected_conditions
+from bs4 import BeautifulSoup
 
 from fetchers.models.Job import Job
 
 
 class BBBFetcherController:
-    WAIT_ELEMENT = 20
-    XPATHS = {}
+    MAX_PAGE_PER_SEARCH = 15
     BASE_URL = 'https://www.bbb.org/search?find_country={country}&find_loc={location}&find_text={category}'
+    CLASSES = {
+        'results': 'MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center'
+    }
 
     def _read_web(self, job: Job):
         try:
@@ -31,11 +26,45 @@ class BBBFetcherController:
                 "referer": target_url,
             }
 
-            result = requests.get(target_url, headers=headers)
+            businesses = {}
+
+            for i in range(0, self.MAX_PAGE_PER_SEARCH):
+                url_with_page = f'{target_url}&page={i + 1}'
+                result = requests.get(url_with_page, headers=headers)
+                businesses |= self.extract_business(result.text)
+
+                if not businesses:
+                    print("No business")
+                    break
+
+            print(f"Bussines found: {len(businesses)}")
+
+            # for business in businesses:
+            #     result = requests.get(businesses[business], headers=headers)
 
             return result.text
         except Exception as e:
             print(e)
+
+    def extract_business(self, html):
+        soup = BeautifulSoup(html, 'html.parser')
+        business = {}
+
+        result_divs = soup.find_all('div', {'class': self.CLASSES['results']})
+
+        for div in result_divs:
+            anchors = div.find_all('a')
+
+            if len(anchors) < 2:
+                print('Business without phone number')
+                continue
+
+            url, phone = anchors[0].get('href'), anchors[1].text
+
+            if phone and url:
+                business[phone] = url
+
+        return business
 
 
 job = {'country': 'USA', 'location': '96070', 'category': 'Water Treatment'}
