@@ -57,18 +57,15 @@ class IngestController:
             raise FetcherError(
                 "Unassigned CATEGORIES_CONFIG_FILE_NAME class variable")
 
-        return (os.path.join(os.path.dirname(__file__), cls.SOURCE.lower(), cls.ZIPCODES_CONFIG_FILE_NAME),
-                os.path.join(os.path.dirname(__file__), cls.SOURCE.lower(),
-                             cls.CATEGORIES_CONFIG_FILE_NAME))
+        return os.path.join(os.path.dirname(__file__), cls.SOURCE.lower(),
+                            cls.CATEGORIES_CONFIG_FILE_NAME)
 
     @classmethod
     def load_config(cls):
-        zipcode_filename, categories_filename = cls.config_file_paths()
-        with open(zipcode_filename, 'r') as zipcode_config:
-            with open(categories_filename, 'r') as categories_config:
-                return cls.instanciate_config(
-                    yaml.load(zipcode_config, Loader=yaml.FullLoader),
-                    yaml.load(categories_config, Loader=yaml.FullLoader))
+        categories_filename = cls.config_file_paths()
+        with open(categories_filename, 'r') as categories_config:
+            return cls.instanciate_config(
+                yaml.load(categories_config, Loader=yaml.FullLoader))
 
     def addScope(self, name, scope):
         if not isinstance(scope, dict):
@@ -113,6 +110,14 @@ class IngestController:
 
         return set_zipcodes
 
+    def get_valid_zipcodes(self):
+
+        with open('valid_zipcodes.csv', 'r') as f:
+            lines = [line.replace('\n', '') for line in f.readlines()]
+
+        for line in lines:
+            yield line
+
     def get_needed_case_numbers(self):
         """Return a generator of a dict of cases left to crawl from config,
         exlcuidng all invalid cases, cases in database, and if not recrawling,
@@ -129,17 +134,19 @@ class IngestController:
         # get a dictionary of all cases that were recently crawled.
         cases_recently_crawled = self.get_recently_crawled_zipcodes()
 
-        limit = get_request_available()
-        print("limit", limit)
+        # limit = get_request_available()
+        # print("limit", limit)
         i = 0
 
         for scopename in self.get_all_scope_names():
+            print(scopename)
             self.setCurrentScope(scopename)
             self.resetCurrentScope()
-            for zipcode in self:
-                if i >= limit:
-                    print("No more queries available")
-                    raise StopIteration
+            valid_zipcodes = self.get_valid_zipcodes()
+            for zipcode in valid_zipcodes:
+                # if i >= limit:
+                #     print("No more queries available")
+                #     raise StopIteration
                 # check if the currently case was crawled recently
                 recently_crawled = (
                     zipcode, self.getCurrentScope().get('category')) in cases_recently_crawled

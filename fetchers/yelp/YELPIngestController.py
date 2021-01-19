@@ -11,19 +11,6 @@ class YELPIngestController(IngestController):
     ZIPCODES_CONFIG_FILE_NAME = "YELP_config.yaml"
     CATEGORIES_CONFIG_FILE_NAME = "YELP_categories.yaml"
 
-    def __next__(self):
-        """Iterates over scopes to yield case numbers
-        """
-        if self.current >= self.getCurrentScope().get("end", 0):
-            raise StopIteration
-        else:
-            self.current += 1
-            # caseType = self.getCurrentScope().get("caseType", "")
-            # caseYear = self.getCurrentScope().get("caseYear", "")
-            caseNumber = str(self.current).zfill(5)
-
-            return f"{caseNumber}"
-
     @classmethod
     def instanciate_config(cls, zipcodes_config, categories_config):
         """Creates ingest controller and appends all scopes in zipcodes_config
@@ -42,7 +29,6 @@ class YELPIngestController(IngestController):
                 state_ranges = state.get("Ranges")
 
                 for i, state_range in enumerate(state_ranges):
-                    print(state_range)
                     scope = {
                         'category': category,
                         "state": state_name,
@@ -62,20 +48,23 @@ def run_sample():
 
     for case in ic.get_needed_case_numbers():
         cases.append(case)
-        if len(cases) > 3000:
-            break
+        # if len(cases) > 3000:
+        #     break
+    print(len(cases))
+    # for case in cases[-5:]:
+    #print("Task ->", case)
+    # fetcher = YELPFetcherController()
+    # fetcher.setScope(**case)
+    # print(fetcher.getCaseIDString())
+    # document = None
+    # try:
+    #     document = fetcher.run()
+    # except Exception as e:
+    #     print(e)
+    #     continue
+    # if document:
+    #     print(document)
+    #     fetcher.save(document)
 
-    for case in cases[-5:]:
-        print("Task ->", case)
-        # fetcher = YELPFetcherController()
-        # fetcher.setScope(**case)
-        # print(fetcher.getCaseIDString())
-        # document = None
-        # try:
-        #     document = fetcher.run()
-        # except Exception as e:
-        #     print(e)
-        #     continue
-        # if document:
-        #     print(document)
-        #     fetcher.save(document)
+
+run_sample()
