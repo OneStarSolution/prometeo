@@ -57,18 +57,15 @@ class IngestController:
             raise FetcherError(
                 "Unassigned CATEGORIES_CONFIG_FILE_NAME class variable")
 
-        return (os.path.join(os.path.dirname(__file__), cls.SOURCE, cls.ZIPCODES_CONFIG_FILE_NAME),
-                os.path.join(os.path.dirname(__file__), cls.SOURCE,
-                             cls.CATEGORIES_CONFIG_FILE_NAME))
+        return os.path.join(os.path.dirname(__file__), cls.SOURCE.lower(),
+                            cls.CATEGORIES_CONFIG_FILE_NAME)
 
     @classmethod
     def load_config(cls):
-        zipcode_filename, categories_filename = cls.config_file_paths()
-        with open(zipcode_filename, 'r') as zipcode_config:
-            with open(categories_filename, 'r') as categories_config:
-                return cls.instanciate_config(
-                    yaml.load(zipcode_config, Loader=yaml.FullLoader),
-                    yaml.load(categories_config, Loader=yaml.FullLoader))
+        categories_filename = cls.config_file_paths()
+        with open(categories_filename, 'r') as categories_config:
+            return cls.instanciate_config(
+                yaml.load(categories_config, Loader=yaml.FullLoader))
 
     def addScope(self, name, scope):
         if not isinstance(scope, dict):
@@ -105,12 +102,21 @@ class IngestController:
                  "TIME": {"$gte": reference_time}}
 
         recently_crawled = attemps.find(
-            query, {"LOCATION": 1}, no_cursor_timeout=True)
+            query, {"LOCATION": 1, "CATEGORY": 1})
 
-        arr = [x.get("LOCATION") for x in recently_crawled]
+        arr = [(x.get("LOCATION"), x.get("CATEGORY"))
+               for x in recently_crawled]
         set_zipcodes = set(arr)
 
         return set_zipcodes
+
+    def get_valid_zipcodes(self):
+
+        with open('valid_zipcodes.csv', 'r') as f:
+            lines = [line.replace('\n', '') for line in f.readlines()]
+
+        for line in lines:
+            yield line
 
     def get_needed_case_numbers(self):
         """Return a generator of a dict of cases left to crawl from config,
@@ -133,14 +139,17 @@ class IngestController:
         i = 0
 
         for scopename in self.get_all_scope_names():
+            print(scopename)
             self.setCurrentScope(scopename)
             self.resetCurrentScope()
-            for zipcode in self:
-                if i >= 2:
+            valid_zipcodes = self.get_valid_zipcodes()
+            for zipcode in valid_zipcodes:
+                if i >= limit:
                     print("No more queries available")
                     raise StopIteration
                 # check if the currently case was crawled recently
-                recently_crawled = zipcode in cases_recently_crawled
+                recently_crawled = (
+                    zipcode, self.getCurrentScope().get('category')) in cases_recently_crawled
 
                 # if the current zipcode was not crawled recently, crawl that case.
                 if not recently_crawled:
