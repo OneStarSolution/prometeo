@@ -1,7 +1,7 @@
 import re
 import os
 
-from fetchers.BBB.BBBFetcherController import BBBFetcherController
+from fetchers.bbb.BBBFetcherController import BBBFetcherController
 from fetchers.IngestController import IngestController
 
 
