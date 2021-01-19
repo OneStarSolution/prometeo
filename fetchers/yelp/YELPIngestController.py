@@ -12,32 +12,21 @@ class YELPIngestController(IngestController):
     CATEGORIES_CONFIG_FILE_NAME = "YELP_categories.yaml"
 
     @classmethod
-    def instanciate_config(cls, zipcodes_config, categories_config):
+    def instanciate_config(cls, categories_config):
         """Creates ingest controller and appends all scopes in zipcodes_config
         :param zipcodes_config: yaml zipcodes_config file in dict form
         :categories_config: yaml categories_config file dict form
         """
         ictl = cls()
-        states = zipcodes_config.get("States")
         categories = categories_config.get("Categories")
         target_categories = [
             category for category in categories if categories[category]]
 
-        for state in states:
-            for category in target_categories:
-                state_name = state.get('State')
-                state_ranges = state.get("Ranges")
-
-                for i, state_range in enumerate(state_ranges):
-                    scope = {
-                        'category': category,
-                        "state": state_name,
-                        "start": state_range.get("Range").get("begin", 0),
-                        "end": state_range.get("Range").get("end", 0),
-                    }
-
-                    ictl.addScope(
-                        f'{cls.SOURCE}_{state_name}_{category}_{i}', scope)
+        for category in target_categories:
+            scope = {'category': category}
+            print(scope)
+            ictl.addScope(
+                f'{cls.SOURCE}_{category}', scope)
 
         return ictl
 
@@ -48,11 +37,9 @@ def run_sample():
 
     for case in ic.get_needed_case_numbers():
         cases.append(case)
-        # if len(cases) > 3000:
-        #     break
     print(len(cases))
-    # for case in cases[-5:]:
-    #print("Task ->", case)
+    for case in cases[-3:]:
+        print("Task ->", case)
     # fetcher = YELPFetcherController()
     # fetcher.setScope(**case)
     # print(fetcher.getCaseIDString())
