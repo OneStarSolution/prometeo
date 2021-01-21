@@ -39,10 +39,21 @@ class BBBFetcherController:
 
             print(f"Bussines found: {len(businesses)}")
 
-            # for business in businesses:
-            #     result = requests.get(businesses[business], headers=headers)
+            if not businesses:
+                return 0
 
-            return result.text
+            # Get the html of every business
+            htmls = {}
+            for business in businesses:
+                print(f"Getting HTML of {business}")
+                result = requests.get(businesses[business], headers=headers)
+                with open(f'{business}.html', 'w') as f:
+                    f.write(result.text)
+                htmls[business] = result.text
+
+            # Create the doc for each business
+
+            return len(businesses)
         except Exception as e:
             print(e)
 
