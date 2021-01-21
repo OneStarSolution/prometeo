@@ -5,6 +5,7 @@ import multiprocessing
 from utils.yelp_token import get_tokens, get_yelp_token, get_token
 
 from pydantic import HttpUrl
+from pymongo.errors import BulkWriteError
 
 import requests
 
@@ -16,6 +17,7 @@ TOO_MANY_REQUEST_ERROR_CODE = 429
 
 class YELPClientController:
     SOURCE = "YELP"
+    LIMIT_RESULTS = 50
 
     def __init__(self) -> None:
         self.BUSINESS_SEARCH_ENDPOINT = "https://api.yelp.com/v3/businesses/search"
@@ -25,8 +27,9 @@ class YELPClientController:
         # preparing request
         token_generator = get_yelp_token()
         # get a token assigned depending on process_number
-        process_number = int(
-            multiprocessing.current_process().name.split('-')[-1])
+        process_name = multiprocessing.current_process().name
+        process_number = int(process_name.split(
+            '-')[-1]) if process_name != "MainProcess" else 1
         token = get_token(process_number)
         print(f"Token: {process_number} - {token}")
 
@@ -67,33 +70,41 @@ class YELPClientController:
                                   'CATEGORY': category, "TIME": datetime.datetime.now()}
             fetch_attempts_col.insert_one(fetch_attempt_dict)
 
-        # logging.info(
-        #     f"Attempting to crawl Yelp using Category: {category}, location: {location},\
-        #       radius: {radius}")
+        print(
+            f"Attempting to crawl Yelp using Category: {category}, location: {location}, radius: {radius}")
 
         params = {
             'location': location,
             'term': category,
-            'radius': radius
+            'radius': radius,
+            'limit': self.LIMIT_RESULTS,
+            'offset': 0
         }
         # get request
         result = self.get(self.BUSINESS_SEARCH_ENDPOINT, params=params)
+        total = result.json().get('total', 0)
+        businesses = []
 
-        if not result:
-            print("No results")
-            return
+        print(f"Found {total // self.LIMIT_RESULTS} pages")
 
-        for business in result.json().get('businesses', []):
-            print(
-                f"Check business: {business.get('name')} ")
+        for offset in range(self.LIMIT_RESULTS, total, self.LIMIT_RESULTS):
+            print(f'Page: {offset // self.LIMIT_RESULTS}')
+            businesses.extend(result.json().get('businesses', []))
 
-            # Skip business without phone numbers
-            if not business.get('phone'):
-                print("Skipping due to phone is missing")
-                continue
+            # get request
+            params |= {'offset': offset}
+            result = self.get(self.BUSINESS_SEARCH_ENDPOINT, params=params)
 
-            with PrometeoDB() as db:
-                yelp_db = db.get_yelp_business()
+        with PrometeoDB() as db:
+            businesses_to_insert = []
+            yelp_db = db.get_yelp_business()
+
+            for business in businesses:
+                # Skip business without phone numbers
+                if not business.get('phone'):
+                    print("Skipping due to phone is missing")
+                    continue
+
                 # check if exists
                 query = {
                     'id': business.get('id')
@@ -101,14 +112,28 @@ class YELPClientController:
                 business_on_db = yelp_db.find_one(query, {'_id': 1})
                 # if so skip
                 if business_on_db:
-                    print(
-                        f"Ignoring business: {business.get('name')} because it's already in the DB")
                     continue
                 # else add it
-                yelp_db.insert(business)
-                print("SAVED!")
+                businesses_to_insert.append(business)
 
-        return result.json().get('businesses', [])
+            try:
+                if businesses_to_insert:
+                    yelp_db.insert_many(
+                        businesses_to_insert, ordered=False)
+
+                print(
+                    f"---Total Business in {location}---\
+                        Found: {len(businesses)}\
+                            Inserted: {len(businesses_to_insert)}\
+                                Duplicated: {len(businesses) - len(businesses_to_insert)}")
+
+            except BulkWriteError as e:
+                print(f"MONGO ERROR: {e}")
+
+        if not businesses:
+            print("NO RESULTS")
+
+        return businesses
 
     def fetch_business_details(self, business_id: str):
         print(
