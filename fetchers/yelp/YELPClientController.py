@@ -84,10 +84,11 @@ class YELPClientController:
         # get request
         result = self.get(self.BUSINESS_SEARCH_ENDPOINT, params=params)
         total = result.json().get('total', 0)
-        businesses = []
+        businesses = result.json().get('businesses', [])
         number_request = 1
 
-        print(f"Found {total // self.LIMIT_RESULTS} pages")
+        print(
+            f"Found: {total} businesses and {total // self.LIMIT_RESULTS} pages")
 
         for offset in range(self.LIMIT_RESULTS, total, self.LIMIT_RESULTS):
             print(f'Page: {offset // self.LIMIT_RESULTS}')
@@ -110,7 +111,7 @@ class YELPClientController:
             business_on_db = yelp_db.find(query, {'id': 1})
 
             if business_on_db:
-                business_on_db = set(business_on_db)
+                business_on_db = set([b.get('id') for b in business_on_db])
 
             for business in businesses:
                 # Skip business without phone numbers
