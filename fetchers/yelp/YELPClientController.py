@@ -150,6 +150,7 @@ class YELPClientController:
                 'radius': radius,
                 'location': location,
                 'source': self.SOURCE,
+                'category': category,
                 'requests': number_request,
                 'found': len(businesses),
                 'inserted': len(businesses_to_insert),
