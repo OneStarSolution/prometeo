@@ -31,7 +31,6 @@ class YELPClientController:
         process_number = int(process_name.split(
             '-')[-1]) if process_name != "MainProcess" else 1
         token = get_token(process_number)
-        print(f"Token: {process_number} - {token}")
 
         bearer_token = {"Authorization": f"Bearer {token}"}
 
@@ -64,6 +63,8 @@ class YELPClientController:
         return result
 
     def fetch(self, category: str, location: str, radius: int = 40000):
+        start_time = time.perf_counter()
+
         with PrometeoDB() as db:
             fetch_attempts_col = db.get_fetch_attempts()
             fetch_attempt_dict = {'SOURCE': self.SOURCE, "LOCATION": location,
@@ -84,6 +85,7 @@ class YELPClientController:
         result = self.get(self.BUSINESS_SEARCH_ENDPOINT, params=params)
         total = result.json().get('total', 0)
         businesses = []
+        number_request = 1
 
         print(f"Found {total // self.LIMIT_RESULTS} pages")
 
@@ -94,10 +96,21 @@ class YELPClientController:
             # get request
             params |= {'offset': offset}
             result = self.get(self.BUSINESS_SEARCH_ENDPOINT, params=params)
+            number_request += 1
 
         with PrometeoDB() as db:
             businesses_to_insert = []
             yelp_db = db.get_yelp_business()
+
+            businesses_ids = [business.get('id') for business in businesses]
+            # check if exists
+            query = {
+                'id': {"$in": businesses_ids}
+            }
+            business_on_db = yelp_db.find(query, {'id': 1})
+
+            if business_on_db:
+                business_on_db = set(business_on_db)
 
             for business in businesses:
                 # Skip business without phone numbers
@@ -105,14 +118,10 @@ class YELPClientController:
                     print("Skipping due to phone is missing")
                     continue
 
-                # check if exists
-                query = {
-                    'id': business.get('id')
-                }
-                business_on_db = yelp_db.find_one(query, {'_id': 1})
                 # if so skip
-                if business_on_db:
+                if business.get('id') in business_on_db:
                     continue
+
                 # else add it
                 businesses_to_insert.append(business)
 
@@ -132,6 +141,21 @@ class YELPClientController:
 
         if not businesses:
             print("NO RESULTS")
+
+        with PrometeoDB() as db:
+            businesses_to_insert = []
+            zipcodes = db.get_request_zipcodes()
+            doc = {
+                'crawl_time': time.perf_counter() - start_time,
+                'radius': radius,
+                'location': location,
+                'source': self.SOURCE,
+                'requests': number_request,
+                'found': len(businesses),
+                'inserted': len(businesses_to_insert),
+                'duplicates': len(businesses) - len(businesses_to_insert),
+            }
+            zipcodes.insert(doc)
 
         return businesses
 

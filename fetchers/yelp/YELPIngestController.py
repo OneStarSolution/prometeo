@@ -54,4 +54,4 @@ def run_sample():
     #     fetcher.save(document)
 
 
-run_sample()
+# run_sample()
