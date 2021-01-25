@@ -110,12 +110,15 @@ class IngestController:
 
         return set_zipcodes
 
-    def get_valid_zipcodes(self):
+    def get_locations(self):
 
         with open('valid_zipcodes.csv', 'r') as f:
             lines = [line.replace('\n', '') for line in f.readlines()]
 
-        for line in lines:
+        with open('CAN_city.csv', 'r') as f:
+            canada_lines = [line.replace('\n', '') for line in f.readlines()]
+
+        for line in lines + canada_lines:
             yield line
 
     def get_needed_case_numbers(self):
@@ -123,15 +126,6 @@ class IngestController:
         exlcuidng all invalid cases, cases in database, and if not recrawling,
         recent crawled cases
         """
-
-        # # Get a dictionary of all cases for this county
-        # cases_on_db = self.get_case_numbers_on_db()
-        # # exclude the ones we have checked
-        # if self.ignore_all_invalids:
-        #     cases_ignore = self.get_all_invalid_case_numbers()
-        # else:
-        #     cases_ignore = self.get_invalid_case_numbers()
-        # get a dictionary of all cases that were recently crawled.
         cases_recently_crawled = self.get_recently_crawled_zipcodes()
 
         limit = get_request_available()
@@ -139,10 +133,9 @@ class IngestController:
         i = 0
 
         for scopename in self.get_all_scope_names():
-            print(scopename)
             self.setCurrentScope(scopename)
             self.resetCurrentScope()
-            valid_zipcodes = self.get_valid_zipcodes()
+            valid_zipcodes = self.get_locations()
             for zipcode in valid_zipcodes:
                 if i >= limit:
                     print("No more queries available")
