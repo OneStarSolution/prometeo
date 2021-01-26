@@ -9,6 +9,7 @@ PROMETEO_DB = "prometeo_db"
 # Collections
 YELP = "yelp"
 FETCH_ATTEMPTS = "fetch_attempts"
+REQUEST_ZIPCODES = "requests_zipcodes"
 
 
 class PrometeoDB:
@@ -27,6 +28,9 @@ class PrometeoDB:
 
     def get_fetch_attempts(self):
         return self.prometeo_db[FETCH_ATTEMPTS]
+
+    def get_request_zipcodes(self):
+        return self.prometeo_db[REQUEST_ZIPCODES]
 
     def close(self):
         if self.mongo_client is not None:
