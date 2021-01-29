@@ -1,8 +1,9 @@
 import re
 import os
 
-from fetchers.YELP.YELPFetcherController import YELPFetcherController
+from utils.yelp_token import get_request_available
 from fetchers.IngestController import IngestController
+from fetchers.yelp.YELPFetcherController import YELPFetcherController
 
 
 class YELPIngestController(IngestController):
@@ -29,6 +30,40 @@ class YELPIngestController(IngestController):
                 f'{cls.SOURCE}_{category}', scope)
 
         return ictl
+
+    def get_needed_case_numbers(self):
+        """Return a generator of a dict of cases left to crawl from config,
+        exlcuidng all invalid cases, cases in database, and if not recrawling,
+        recent crawled cases
+        """
+        cases_recently_crawled = self.get_recently_crawled_zipcodes()
+
+        limit = get_request_available()
+        print("limit", limit)
+        i = 0
+
+        for scopename in self.get_all_scope_names():
+            self.setCurrentScope(scopename)
+            self.resetCurrentScope()
+            valid_zipcodes = self.get_locations()
+            for zipcode in valid_zipcodes:
+                if i >= limit:
+                    print("No more queries available")
+                    raise StopIteration
+                # check if the currently case was crawled recently
+                recently_crawled = (
+                    zipcode, self.getCurrentScope().get('category')) in cases_recently_crawled
+
+                # if the current zipcode was not crawled recently, crawl that case.
+                if not recently_crawled:
+                    scope = self.getCurrentScope()
+
+                    if not scope:
+                        scope = {}
+
+                    scope.update({"zipcode": zipcode})
+                    i += 1
+                    yield dict(scope)
 
 
 def run_sample():
