@@ -1,15 +1,15 @@
 import re
 import os
 
-from fetchers.bbb.BBBFetcherController import BBBFetcherController
+from fetchers.yellowpages.YellowPagesFetcherController import YellowPagesFetcherController
 from fetchers.IngestController import IngestController
 
 
-class BBBIngestController(IngestController):
+class YellowPagesIngestController(IngestController):
 
-    SOURCE = "BBB"
-    ZIPCODES_CONFIG_FILE_NAME = "BBB_config.yaml"
-    CATEGORIES_CONFIG_FILE_NAME = "BBB_categories.yaml"
+    SOURCE = "YellowPages"
+    ZIPCODES_CONFIG_FILE_NAME = "YellowPages_config.yaml"
+    CATEGORIES_CONFIG_FILE_NAME = "YellowPages_categories.yaml"
 
     @classmethod
     def instanciate_config(cls, categories_config):
@@ -32,7 +32,7 @@ class BBBIngestController(IngestController):
 
 
 def run_sample():
-    ic = BBBIngestController.load_config()
+    ic = YellowPagesIngestController.load_config()
     cases = []
 
     for case in ic.get_needed_case_numbers():
@@ -40,7 +40,7 @@ def run_sample():
     print(len(cases))
     for case in cases[-3:]:
         print("Task ->", case)
-    # fetcher = BBBFetcherController()
+    # fetcher = YellowPagesFetcherController()
     # fetcher.setScope(**case)
     # print(fetcher.getCaseIDString())
     # document = None

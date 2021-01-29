@@ -9,13 +9,15 @@ from fetchers.FetcherDocument import FetcherDocument
 from fetchers.FetcherController import FetcherController
 
 
-class BBBFetcherController(FetcherController):
+class YellowPagesFetcherController(FetcherController):
     MAX_PAGE_PER_SEARCH = 15
-    BASE_URL = 'https://www.bbb.org/search?find_country={country}&find_loc={location}&find_text={category}'
+    BASE_URL = 'https://www.yellowpages.com/search?search_terms={category}&geo_location_terms={location}'
     CLASSES = {
-        'results': 'MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center'
+        'results': 'result',
+        'business_name': 'business-name',
+        'phone': 'phones phone primary',
     }
-    SOURCE = "BBB"
+    SOURCE = "YellowPages"
 
     def _read_web(self, job: Job, phones_to_ignore=None):
 
@@ -23,7 +25,7 @@ class BBBFetcherController(FetcherController):
         job['category'] = job.get('category').replace(' ', "+")
         target_url = self.BASE_URL.format(**job)
         print(
-            f"Attempting to crawl BBB using business: {target_url}")
+            f"Attempting to crawl YellowPages using business: {target_url}")
 
         headers = {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36",
@@ -77,13 +79,16 @@ class BBBFetcherController(FetcherController):
         result_divs = soup.find_all('div', {'class': self.CLASSES['results']})
 
         for div in result_divs:
-            anchors = div.find_all('a')
+            anchor = div.find_all(
+                'a', {'class': self.CLASSES['business_name']})
+            phone = div.find_all(
+                'div', {'class': self.CLASSES['phone']})
 
-            if len(anchors) < 2:
+            if not phone:
                 print('Business without phone number')
                 continue
 
-            url, phone = anchors[0].get('href'), anchors[1].text
+            url, phone = anchor.get('href'), phone.text
 
             if phone and url:
                 business[phone] = url
@@ -98,9 +103,11 @@ class BBBFetcherController(FetcherController):
         return doc
 
 
-# job = {'country': 'USA', 'location': '96070', 'category': 'Water Treatment'}
-# b = BBBFetcherController()
-# s = time.perf_counter()
-# b._read_web(job)
-# e = time.perf_counter()
-# print(e-s)
+def run_sample():
+    job = {'country': 'USA', 'location': '92070',
+           'category': 'Plumbing'}
+    b = YellowPagesFetcherController()
+    s = time.perf_counter()
+    b._read_web(job)
+    e = time.perf_counter()
+    print(e-s)
