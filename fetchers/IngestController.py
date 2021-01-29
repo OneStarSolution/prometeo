@@ -115,7 +115,8 @@ class IngestController:
             lines = [line.replace('\n', '') for line in f.readlines()]
 
         with open('CAN_city.csv', 'r') as f:
-            canada_lines = [line.replace('\n', '') for line in f.readlines()]
+            canada_lines = [line.replace('\n', '')[:-1]
+                            for line in f.readlines()]
 
         for line in lines + canada_lines:
             yield line
@@ -133,6 +134,7 @@ class IngestController:
             self.setCurrentScope(scopename)
             self.resetCurrentScope()
             valid_zipcodes = self.get_locations()
+            print(scopename)
             for zipcode in valid_zipcodes:
                 # check if the currently case was crawled recently
                 recently_crawled = (
@@ -145,6 +147,7 @@ class IngestController:
                     if not scope:
                         scope = {}
 
-                    scope.update({"zipcode": zipcode})
+                    scope |= {"country": "USA" if zipcode.isnumeric() else "CA",
+                              "location": zipcode.zfill(5) if zipcode.isnumeric() else zipcode}
                     i += 1
                     yield dict(scope)
