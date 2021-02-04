@@ -11,6 +11,8 @@ from fetchers.yelp.YELPFetcherController import YELPFetcherController
 from fetchers.yelp.YELPIngestController import YELPIngestController
 from fetchers.bbb.BBBFetcherController import BBBFetcherController
 from fetchers.bbb.BBBIngestController import BBBIngestController
+from fetchers.yellowpages.YellowPagesFetcherController import YellowPagesFetcherController
+from fetchers.yellowpages.YellowPagesIngestController import YellowPagesIngestController
 
 
 url = 'https://www.yelp.com/biz/whitehorse-plumbing-albuquerque-2'
@@ -143,6 +145,15 @@ def run_bbb(job, lines):
     print("time: ", e-s)
 
 
+def run_yellowpages(job, lines):
+    print("doing the job", job)
+    b = YellowPagesFetcherController()
+    s = time.perf_counter()
+    b._read_web(job, phones_to_ignore=lines)
+    e = time.perf_counter()
+    print("time: ", e-s)
+
+
 def run_bbb_parallel():
 
     workers = 4
@@ -163,6 +174,35 @@ def run_bbb_parallel():
                 executor.submit(
                     # run_bbb, job, lines) for job in ic.get_needed_case_numbers()
                     run_bbb, {'location': job, "country": "USA", "source": "BBB", "category": "Water Treatment"}, lines) for job in test
+            ]
+
+    except StopIteration as e:
+        print(e)
+        return
+    except Exception as e:
+        print(e)
+
+
+def run_yellowpages_parallel():
+
+    workers = 4
+    ic = YellowPagesIngestController.load_config()
+
+    # read iignore phons file and create a set
+    with open('ignore_phones.csv', 'r') as f:
+        lines = [line.replace('\n', '') for line in f.readlines()]
+
+    lines = set(lines)
+
+    with open('test.csv', 'r') as f:
+        test = [line.replace('\n', '') for line in f.readlines()]
+
+    try:
+        with ProcessPoolExecutor(max_workers=workers) as executor:
+            futures = [
+                executor.submit(
+                    # run_bbb, job, lines) for job in ic.get_needed_case_numbers()
+                    run_yellowpages, {'location': job.zfill(5), "country": "USA", "source": "YELLOWPAGES", "category": "Water Treatment"}, lines) for job in test
             ]
 
     except StopIteration as e:
@@ -229,4 +269,4 @@ def attach_phones():
 # print(YELPClientController().fetch(category, location))
 
 
-run_bbb_parallel()
+run_yellowpages_parallel()

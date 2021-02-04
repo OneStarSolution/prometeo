@@ -17,7 +17,7 @@ class YellowPagesFetcherController(FetcherController):
         'business_name': 'business-name',
         'phone': 'phones phone primary',
     }
-    SOURCE = "YellowPages"
+    SOURCE = "YELLOWPAGES"
 
     def _read_web(self, job: Job, phones_to_ignore=None):
 
@@ -79,9 +79,9 @@ class YellowPagesFetcherController(FetcherController):
         result_divs = soup.find_all('div', {'class': self.CLASSES['results']})
 
         for div in result_divs:
-            anchor = div.find_all(
+            anchor = div.find(
                 'a', {'class': self.CLASSES['business_name']})
-            phone = div.find_all(
+            phone = div.find(
                 'div', {'class': self.CLASSES['phone']})
 
             if not phone:
@@ -91,7 +91,7 @@ class YellowPagesFetcherController(FetcherController):
             url, phone = anchor.get('href'), phone.text
 
             if phone and url:
-                business[phone] = url
+                business[phone] = f'https://www.yellowpages.com{url}'
 
         return business
 
