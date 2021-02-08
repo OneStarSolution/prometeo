@@ -1,7 +1,8 @@
-import logging
 import re
+import json
+import logging
 
-from bs4 import BeautifulSoup
+from bs4 import BeautifulSoup, Comment
 from fetchers.FetcherDocument import FetcherDocument
 
 
@@ -13,7 +14,7 @@ BUSINESS_OWNER_REGEX = r'^businessOwner[\w-]+'
 
 class YELPFetcherDocument(FetcherDocument):
     DOMAIN = "YELP"
-    CONTACT_INFO_INDEX = 1
+    CONTACT_INFO_INDEX = -1
     AMENITIES_INDEX = 8
 
     CLASSES = {
@@ -40,54 +41,63 @@ class YELPFetcherDocument(FetcherDocument):
                 'section', {'class': self.CLASSES['contact_info']})
 
             # Contact section use to be the second
-            if len(results) < 2:
+            if not results:
                 raise Exception("Contact info is missing")
 
         except AttributeError:
             print("Title or contact section could not be located")
 
-        print("pase")
         return soup
 
     def parse_summary(self, soup: BeautifulSoup):
+        # Get business_id
+        # self.summary['business_id'] = self.get_business_id(soup)
+
         # Get website
         self.summary['website'] = self.get_website(soup)
-        print(f'website: {self.summary["website"]}')
+
         # Get accept_card
         self.summary['accept_cards'] = self.get_accept_cards(soup)
-        print("card ", self.summary['accept_cards'])
+
         # Get is_claimed
         self.summary['is_claimed'] = self.is_claimed(soup)
-        print("claimed: ", self.summary['is_claimed'])
+
         response_time, response_rate = self.get_response_stats(soup)
 
-        if response_time:
-            self.summary['response_time'] = response_time
+        self.summary['response_time'] = response_time or None
 
-        if response_rate:
-            self.summary['response_rate'] = response_rate
-
-        print("res time: ", self.summary.get('response_time'),
-              "rs rate", self.summary.get('response_rate'))
+        self.summary['response_rate'] = response_rate or None
 
         contact_name, contact_role = self.get_contact_info(soup)
 
-        if contact_name:
-            self.summary['contact_name'] = contact_name
+        self.summary['contact_name'] = contact_name or None
 
-        if contact_role:
-            self.summary['contact_role'] = contact_role
+        self.summary['contact_role'] = contact_role or None
 
-        print("contact name: ", self.summary.get('contact_name'),
-              "role", self.summary.get('contact_role'))
+    def get_business_id(self, soup: BeautifulSoup):
+        # Find the contact section (last one)
+        try:
+            script = soup.find_all('script', type='application/json')[-2]
+            comment = script.find(text=lambda text: isinstance(text, Comment))
+            commentsoup = BeautifulSoup(comment, 'html.parser')
+            print(commentsoup.text)
+            script_content = json.loads(commentsoup.text)
+            return script_content.get('business_id')
+        except Exception as e:
+            print("error finding the business_id", e)
+            return None
 
     def get_website(self, soup: BeautifulSoup):
-        # Find the contact section
-        contact_section = soup.find_all(
-            'section', {'class': self.CLASSES['contact_info']})[self.CONTACT_INFO_INDEX]
+        # Find the contact section (last one)
+        contact_sections = soup.find_all(
+            'section', {'class': self.CLASSES['contact_info']})
 
         # Find the urls in the contact section
-        links = contact_section.find_all('a')
+        links = []
+        for contact_section in contact_sections:
+            possible_urls = contact_section.find_all('a')
+            if possible_urls:
+                links.extend(possible_urls)
 
         # As links could content urls that are not the main url of the business
         # we would take only the first link displayed in the section
@@ -106,13 +116,16 @@ class YELPFetcherDocument(FetcherDocument):
         return None
 
     def get_accept_cards(self, soup: BeautifulSoup):
-        ameneties = soup.find_all('section', {'class': self.CLASSES['amenities']})[
-            self.AMENITIES_INDEX]
+        ameneties = soup.find_all(
+            'section', {'class': self.CLASSES['amenities']})
 
         if not ameneties:
             return None
 
-        spans = ameneties.find_all('span')
+        if self.AMENITIES_INDEX >= len(ameneties):
+            return False
+
+        spans = ameneties[self.AMENITIES_INDEX].find_all('span')
 
         for span in spans:
             if span.text.lower() == 'accepts credit cards':
@@ -129,7 +142,7 @@ class YELPFetcherDocument(FetcherDocument):
         paragraphs = soup.find_all(
             'p', {'class': self.CLASSES['response_stats']})
 
-        if not paragraphs or len(paragraphs) != 2:
+        if not paragraphs or paragraphs and len(paragraphs) != 2:
             return None, None
 
         return paragraphs[0].text, paragraphs[1].text
@@ -139,12 +152,12 @@ class YELPFetcherDocument(FetcherDocument):
             'div', {'aria-labelledby': re.compile(BUSINESS_OWNER_REGEX)})
 
         if not container:
-            print("There is no a container of business info")
+            print("There is no a container of contact info")
             return None, None
 
         paragraphs = container.find_all('p', recursive=True)
 
-        if not paragraphs or len(paragraphs) != 3:
+        if not paragraphs or paragraphs and len(paragraphs) != 3:
             print(
                 "There are no paragraphs or there are less/more than expected in the business owner container")
             return None, None
