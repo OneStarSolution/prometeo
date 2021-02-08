@@ -5,10 +5,12 @@ import pandas as pd
 from math import ceil
 from concurrent.futures import ProcessPoolExecutor
 
-from fetchers.yelp.YELPFetcherController import YELPFetcherController
 from fetchers.yelp.YELPFetcherDocument import YELPFetcherDocument
 from fetchers.yelp.YELPClientController import YELPClientController
+from fetchers.yelp.YELPFetcherController import YELPFetcherController
 from fetchers.yelp.YELPIngestController import YELPIngestController
+from fetchers.bbb.BBBFetcherController import BBBFetcherController
+from fetchers.bbb.BBBIngestController import BBBIngestController
 
 
 url = 'https://www.yelp.com/biz/whitehorse-plumbing-albuquerque-2'
@@ -122,7 +124,45 @@ def run_yelpfclient_parallel():
         with ProcessPoolExecutor(max_workers=workers) as executor:
             futures = [
                 executor.submit(
-                    run_client, job.get('category'), job.get('zipcode')) for job in ic.get_needed_case_numbers()
+                    run_client, job.get('category'), job.get('location')) for job in ic.get_needed_case_numbers()
+            ]
+
+    except StopIteration as e:
+        print(e)
+        return
+    except Exception as e:
+        print(e)
+
+
+def run_bbb(job, lines):
+    print("doing the job", job)
+    b = BBBFetcherController()
+    s = time.perf_counter()
+    b._read_web(job, phones_to_ignore=lines)
+    e = time.perf_counter()
+    print("time: ", e-s)
+
+
+def run_bbb_parallel():
+
+    workers = 4
+    ic = BBBIngestController.load_config()
+
+    # read iignore phons file and create a set
+    with open('ignore_phones.csv', 'r') as f:
+        lines = [line.replace('\n', '') for line in f.readlines()]
+
+    lines = set(lines)
+
+    with open('test.csv', 'r') as f:
+        test = [line.replace('\n', '') for line in f.readlines()]
+
+    try:
+        with ProcessPoolExecutor(max_workers=workers) as executor:
+            futures = [
+                executor.submit(
+                    # run_bbb, job, lines) for job in ic.get_needed_case_numbers()
+                    run_bbb, {'location': job, "country": "USA", "source": "BBB", "category": "Water Treatment"}, lines) for job in test
             ]
 
     except StopIteration as e:
@@ -185,8 +225,8 @@ def attach_phones():
 
 
 # print(YELPController_run_sample(url))
-# category, location = "plumbing", "10095"
+# category, location = "Water Treatment", "95066"
 # print(YELPClientController().fetch(category, location))
 
 
-run_yelpfclient_parallel()
+run_bbb_parallel()

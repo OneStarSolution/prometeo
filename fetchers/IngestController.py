@@ -1,5 +1,4 @@
 import os
-from utils.yelp_token import get_request_available
 import yaml
 import datetime
 
@@ -116,7 +115,8 @@ class IngestController:
             lines = [line.replace('\n', '') for line in f.readlines()]
 
         with open('CAN_city.csv', 'r') as f:
-            canada_lines = [line.replace('\n', '') for line in f.readlines()]
+            canada_lines = [line.replace('\n', '')[:-1]
+                            for line in f.readlines()]
 
         for line in lines + canada_lines:
             yield line
@@ -128,18 +128,14 @@ class IngestController:
         """
         cases_recently_crawled = self.get_recently_crawled_zipcodes()
 
-        limit = get_request_available()
-        print("limit", limit)
         i = 0
 
         for scopename in self.get_all_scope_names():
             self.setCurrentScope(scopename)
             self.resetCurrentScope()
             valid_zipcodes = self.get_locations()
+            print(scopename)
             for zipcode in valid_zipcodes:
-                if i >= limit:
-                    print("No more queries available")
-                    raise StopIteration
                 # check if the currently case was crawled recently
                 recently_crawled = (
                     zipcode, self.getCurrentScope().get('category')) in cases_recently_crawled
@@ -151,6 +147,7 @@ class IngestController:
                     if not scope:
                         scope = {}
 
-                    scope.update({"zipcode": zipcode})
+                    scope |= {"country": "USA" if zipcode.isnumeric() else "CA",
+                              "location": zipcode.zfill(5) if zipcode.isnumeric() else zipcode}
                     i += 1
                     yield dict(scope)

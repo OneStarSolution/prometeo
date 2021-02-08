@@ -8,6 +8,7 @@ PROMETEO_DB = "prometeo_db"
 
 # Collections
 YELP = "yelp"
+BUSINESSES = "businesses"
 FETCH_ATTEMPTS = "fetch_attempts"
 REQUEST_ZIPCODES = "requests_zipcodes"
 
@@ -25,6 +26,9 @@ class PrometeoDB:
 
     def get_yelp_business(self):
         return self.prometeo_db[YELP]
+
+    def get_businesses(self):
+        return self.prometeo_db[BUSINESSES]
 
     def get_fetch_attempts(self):
         return self.prometeo_db[FETCH_ATTEMPTS]
