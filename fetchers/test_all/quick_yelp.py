@@ -153,7 +153,7 @@ def string_cleaner(string):
     trailing_punctuation_marks = [".", ",", ";",
                                   "-", "?", "'", '"', ")", "(", "{", "}", "/", ]
     string = string.lower()
-    string = string.encode("ascii", "ignore")
+    # string = string.encode("ascii", "ignore")
     if 'apos;' in string:
         string = string.replace("&amp;apos;", "'")
     if "&amp;" in string:
@@ -283,8 +283,8 @@ def duplicate_checker(source, data_point):
                         unique_status = False
                     else:
                         unique_status = True
-    # return unique_status
-    return True  # Remove comment if you want to extract all results
+    return unique_status
+    # return True  # Remove comment if you want to extract all results
 
 
 def yelp_url_scraper(vertical, location):
