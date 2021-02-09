@@ -1772,6 +1772,7 @@ def primary_sources_merge(dict_one, dict_two, dict_three, number_of_empty_lists)
             pass
         else:
             unique_phone_list.append(phone_number)
+    print(all_results)
     for phone in unique_phone_list:
         unique_lead = {}
         for result in all_results:
