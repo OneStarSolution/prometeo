@@ -1746,6 +1746,7 @@ def primary_sources_merge(dict_one, dict_two, dict_three, number_of_empty_lists)
     de_duped_lead_list = []
     unique_phone_list = []
     all_results = dict_one + dict_two + dict_three
+    all_results = [elem for elem in all_results if elem]
     # temp_list_storage = []
     # temp_list_storage.append(dict_one)
     # temp_list_storage.append(dict_two)
