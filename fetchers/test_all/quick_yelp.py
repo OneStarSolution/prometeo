@@ -149,6 +149,7 @@ def remove_phone_format(string):
 
 
 def string_cleaner(string):
+    string = str(string)
     trailing_punctuation_marks = [".", ",", ";",
                                   "-", "?", "'", '"', ")", "(", "{", "}", "/", ]
     string = string.lower()
