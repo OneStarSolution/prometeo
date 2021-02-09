@@ -1745,26 +1745,27 @@ def yellowpages_url_and_phone_scraper(vertical, location):
 def primary_sources_merge(dict_one, dict_two, dict_three, number_of_empty_lists):
     de_duped_lead_list = []
     unique_phone_list = []
-    temp_list_storage = []
-    temp_list_storage.append(dict_one)
-    temp_list_storage.append(dict_two)
-    temp_list_storage.append(dict_three)
-    if number_of_empty_lists == 2:
-        for dict_list in temp_list_storage:
-            if dict_list == [{}]:
-                pass
-            else:
-                all_results = dict_list
-                break
-    if number_of_empty_lists == 1:
-        if dict_one == [{}]:
-            all_results = dict_two + dict_three
-        if dict_two == []:
-            all_results = dict_one + dict_three
-        if dict_three == []:
-            all_results = dict_one + dict_two
-    if number_of_empty_lists == 0:
-        all_results = dict_one + dict_two + dict_three
+    all_results = dict_one + dict_two + dict_three
+    # temp_list_storage = []
+    # temp_list_storage.append(dict_one)
+    # temp_list_storage.append(dict_two)
+    # temp_list_storage.append(dict_three)
+    # if number_of_empty_lists == 2:
+    #     for dict_list in temp_list_storage:
+    #         if dict_list == [{}]:
+    #             pass
+    #         else:
+    #             all_results = dict_list
+    #             break
+    # if number_of_empty_lists == 1:
+    #     if dict_one == [{}]:
+    #         all_results = dict_two + dict_three
+    #     if dict_two == []:
+    #         all_results = dict_one + dict_three
+    #     if dict_three == []:
+    #         all_results = dict_one + dict_two
+    # if number_of_empty_lists == 0:
+    #     all_results = dict_one + dict_two + dict_three
     for result in all_results:
         phone_number = result["phone"]
         if phone_number in unique_phone_list:
