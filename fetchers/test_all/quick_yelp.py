@@ -1767,7 +1767,7 @@ def primary_sources_merge(dict_one, dict_two, dict_three, number_of_empty_lists)
     # if number_of_empty_lists == 0:
     #     all_results = dict_one + dict_two + dict_three
     for result in all_results:
-        phone_number = result["phone"]
+        phone_number = result.get("phone")
         if phone_number in unique_phone_list:
             pass
         else:
@@ -1775,10 +1775,10 @@ def primary_sources_merge(dict_one, dict_two, dict_three, number_of_empty_lists)
     for phone in unique_phone_list:
         unique_lead = {}
         for result in all_results:
-            if phone == result["phone"]:
-                url_key = result.keys()[1]
+            if phone == result.get("phone"):
+                url_key = list(result.keys())[1]
                 unique_lead["phone"] = phone
-                unique_lead[url_key] = result.values()[1]
+                unique_lead[url_key] = list(result.values())[1]
         de_duped_lead_list.append(unique_lead)
     return de_duped_lead_list
 
