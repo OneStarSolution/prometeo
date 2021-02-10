@@ -9,13 +9,28 @@ import re
 import time
 import xlsxwriter
 import requests
+import os
+
+
+def get_locations():
+
+    with open('valid_zipcodes.csv', 'r') as f:
+        lines = [line.replace('\n', '') for line in f.readlines()]
+
+    with open('CAN_city.csv', 'r') as f:
+        canada_lines = [line.replace('\n', '')[:-1]
+                        for line in f.readlines()]
+
+    for line in lines + canada_lines:
+        yield line
+
 
 space = "*" * 75
 
 verticals = ["hvac"]  # 'plumbing', 'restoration'
 
 # , "24715", "01035", "01036", "39823", "61232", "83543", "99841", "85033"
-locations = ["74444"]
+locations = get_locations()
 
 
 no_new_data_list = []
@@ -291,7 +306,7 @@ def yelp_url_scraper(vertical, location):
     url_list = []
     yelp_domain = {"domain": "https://www.yelp.com/search?find_desc=", "vertical": "plumbing",
                    "mid_string": "&find_loc=", "location": "85033", "end_string": "&ns=1&start="}
-    for page in range(4):  # default value is 17 here
+    for page in range(17):  # default value is 17 here
         directory_page = page*10
         yelp_url = yelp_domain["domain"] + vertical + yelp_domain["mid_string"] + \
             location + yelp_domain["end_string"] + str(directory_page)
@@ -638,7 +653,7 @@ def bbb_url_and_phone_scraper(vertical, location):
     already_clicked = False
     bbb_domain = {"domain": "https://www.bbb.org/search?find_country=", "country": "USA", "mid_string": "&find_loc=",
                   "location": "85033", "mid_string_2": "&find_text=", "vertical": "plumbing", "end_string": "&page=", "page": "1"}
-    for page in range(1, 4):  # Default value is 17
+    for page in range(1, 17):  # Default value is 17
         bbb_url = bbb_domain["domain"] + country + bbb_domain["mid_string"] + location + \
             bbb_domain["mid_string_2"] + vertical + \
             bbb_domain["end_string"] + str(page)
@@ -1673,7 +1688,7 @@ def yellowpages_url_and_phone_scraper(vertical, location):
     new_lead_dict_list = []
     yp_domain = {"domain": "https://www.yellowpages.com/search?search_terms=", "vertical": "plumbing",
                  "mid_string": "&geo_location_terms=", "location": "85033", "end_string": "&page=", "page": "1"}
-    for page in range(1, 3):  # set to 99, changed to 5 for testing purposes
+    for page in range(1, 50):  # set to 99, changed to 5 for testing purposes
         yp_url = yp_domain["domain"] + vertical + yp_domain["mid_string"] + \
             location + yp_domain["end_string"] + str(page)
         # print(space + '\n' + yp_url)
@@ -2151,62 +2166,88 @@ def post_enhancement_data_scrape(enhanced_lead_data):
                     value, phone_number)
 
 
-for vertical in verticals:
-    for location in locations:
-        vertical_and_location_name = vertical + '-' + location
-        file_name = vertical + '-' + location + '-phone_and_url_scrape.xlsx'
-        print(space + "\n" "Current vertical: " + vertical +
-              "\n" + "Current location: " + location + "\n" + space)
-        print("[*] Scraping for yelp urls [*]")
-        unique_yelp_url_list = yelp_url_scraper(vertical, location)
-        print("[*] Scraping data from yelp urls [*]")
-        new_yelp_leads = yelp_data_scraper(unique_yelp_url_list, '')
-        print("[*] Saving scraped yelp data [*]")
-        dictionary_dataframe = pd.DataFrame(new_yelp_leads)
-        dictionary_dataframe.to_excel(
-            vertical + "-" + location + "-yelp_data.xlsx")
-        print("Saved")
-        print("[*] Extracting phones and urls from yelp data [*]")
-        new_yelp_url_and_phones = []
-        if new_yelp_leads == []:
-            new_yelp_url_and_phones.append({})
-        else:
-            for lead in new_yelp_leads:
-                yelp_url_and_phone_dict = {}
-                phone_number = lead["phone"]
-                source_url = lead["yelp url"]
-                yelp_url_and_phone_dict["phone"] = phone_number
-                yelp_url_and_phone_dict["yelp url"] = source_url
-                new_yelp_url_and_phones.append(yelp_url_and_phone_dict)
-        print("[*] Scraping for bbb Phones and urls [*]")
-        new_bbb_url_and_phones = bbb_url_and_phone_scraper(vertical, location)
-        print("[*] Scraping for yp phones and urls [*]")
-        new_yp_url_and_phones = yellowpages_url_and_phone_scraper(
-            vertical, location)
-        print("[*] Checking for empty lists [*]")
-        number_of_empty_lists = check_for_no_results(
-            new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones)
-        if number_of_empty_lists == 3:
-            print("[*] No new data found for " +
-                  vertical_and_location_name + " [*]")
-        else:
-            print("[*] Merging yelp, bbb and yp phones and urls [*]")
-            de_duped_lead_list = primary_sources_merge(
-                new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones, number_of_empty_lists)
-            print("[*] Saving yelp, bbb and yp source phones and urls [*]")
-            dictionary_dataframe = pd.DataFrame(de_duped_lead_list)
-            dictionary_dataframe.to_excel(
-                vertical + "-" + location + "-phones_and_urls.xlsx")
-            print("Saved")
-            print("[*] Passing list of scraped phone numbers through the search engine scraper [*]\n[*] Adding enhancmenet source urls to phone numbers [*]")
-            enhanced_lead_data = search_engine_scraper(de_duped_lead_list, 2)
-            print("[*] Saving enhanced phones and urls [*]")
-            dictionary_dataframe = pd.DataFrame(enhanced_lead_data)
-            dictionary_dataframe.to_excel(
-                vertical + "-" + location + "-phones_and_urls_enhanced.xlsx")
-            print("Saved")
-            # post_enhancement_data_scrape(enhanced_lead_data)
+def get_verticals_and_location_crawled():
+    filenames = os.listdir("data/enhanced")
+    print("files", filenames)
 
+    locations_and_verticals = set(
+        [tuple(filename.split('/')[-1].split('-')[:2]) for filename in filenames])
+    return locations_and_verticals
+
+
+limit = 0
+verticals_and_locations_crawled = get_verticals_and_location_crawled()
+print(verticals_and_locations_crawled)
+
+s = time.perf_counter()
+
+try:
+    for vertical in verticals:
+        for location in locations:
+            if (vertical, location) in verticals_and_locations_crawled:
+                continue
+            if limit >= 200:
+                break
+            limit += 1
+            vertical_and_location_name = vertical + '-' + location
+            file_name = vertical + '-' + location + '-phone_and_url_scrape.xlsx'
+            print(space + "\n" "Current vertical: " + vertical +
+                  "\n" + "Current location: " + location + "\n" + space)
+            print("[*] Scraping for yelp urls [*]")
+            unique_yelp_url_list = yelp_url_scraper(vertical, location)
+            print("[*] Scraping data from yelp urls [*]")
+            new_yelp_leads = yelp_data_scraper(unique_yelp_url_list, '')
+            print("[*] Saving scraped yelp data [*]")
+            dictionary_dataframe = pd.DataFrame(new_yelp_leads)
+            dictionary_dataframe.to_excel(
+                "data/yelp_data/" + vertical + "-" + location + "-yelp_data.xlsx")
+            print("Saved")
+            print("[*] Extracting phones and urls from yelp data [*]")
+            new_yelp_url_and_phones = []
+            if new_yelp_leads == []:
+                new_yelp_url_and_phones.append({})
+            else:
+                for lead in new_yelp_leads:
+                    yelp_url_and_phone_dict = {}
+                    phone_number = lead["phone"]
+                    source_url = lead["yelp url"]
+                    yelp_url_and_phone_dict["phone"] = phone_number
+                    yelp_url_and_phone_dict["yelp url"] = source_url
+                    new_yelp_url_and_phones.append(yelp_url_and_phone_dict)
+            print("[*] Scraping for bbb Phones and urls [*]")
+            new_bbb_url_and_phones = bbb_url_and_phone_scraper(
+                vertical, location)
+            print("[*] Scraping for yp phones and urls [*]")
+            new_yp_url_and_phones = yellowpages_url_and_phone_scraper(
+                vertical, location)
+            print("[*] Checking for empty lists [*]")
+            number_of_empty_lists = check_for_no_results(
+                new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones)
+            if number_of_empty_lists == 3:
+                print("[*] No new data found for " +
+                      vertical_and_location_name + " [*]")
+            else:
+                print("[*] Merging yelp, bbb and yp phones and urls [*]")
+                de_duped_lead_list = primary_sources_merge(
+                    new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones, number_of_empty_lists)
+                print("[*] Saving yelp, bbb and yp source phones and urls [*]")
+                dictionary_dataframe = pd.DataFrame(de_duped_lead_list)
+                dictionary_dataframe.to_excel(
+                    "data/phones_urls/" + vertical + "-" + location + "-phones_and_urls.xlsx")
+                print("Saved")
+                print("[*] Passing list of scraped phone numbers through the search engine scraper [*]\n[*] Adding enhancmenet source urls to phone numbers [*]")
+                enhanced_lead_data = search_engine_scraper(
+                    de_duped_lead_list, 2)
+                print("[*] Saving enhanced phones and urls [*]")
+                dictionary_dataframe = pd.DataFrame(enhanced_lead_data)
+                dictionary_dataframe.to_excel(
+                    "data/enhanced/" + vertical + "-" + location + "-phones_and_urls_enhanced.xlsx")
+                print("Saved")
+            # post_enhancement_data_scrape(enhanced_lead_data)
+finally:
+    driver.close()
+e = time.perf_counter()
+print(f"Finished in {e-s}")
 # try:
 #     s = time.perf_counter()
 #     res = yellowpages_url_and_phone_scraper(
