@@ -1675,7 +1675,7 @@ def source_url_filter(url):
 
 
 def browser_phone_translater(phone_number):
-    if phone_number is not str:
+    if isinstance(phone_number, bytes):
         phone_number = phone_number.decode("utf-8")
 
     translated_phone = phone_number.replace("(", "%28")
