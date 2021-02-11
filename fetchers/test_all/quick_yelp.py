@@ -45,102 +45,27 @@ driver = webdriver.Firefox(
 
 
 def load_historical_data():
-    historical_phone_list_2 = []
-    file = open("2_historical_phones.txt", "r+")
-    file_data = file.readlines()
-    file.close()
-    for i in file_data:
-        phone = i.strip()
-        historical_phone_list_2.append(phone)
+    historical_phones = set()
+    for i in range(2, 10):
+        with open(f'{i}_historical_phones.txt', "r+") as file:
+            phones = set([phone.strip() for phone in file.readlines()])
+            historical_phones |= phones
 
-    historical_phone_list_3 = []
-    file = open("3_historical_phones.txt", "r+")
-    file_data = file.readlines()
-    file.close()
-    for i in file_data:
-        phone = i.strip()
-        historical_phone_list_3.append(phone)
+    sources = ["yelp", "bb", "yp"]
+    historical_urls = set()
+    for source in sources:
+        with open(f'historical_{source}_urls.txt', "r+") as file:
+            urls = set([url.strip() for url in file.readlines()])
+            historical_urls |= urls
 
-    historical_phone_list_4 = []
-    file = open("4_historical_phones.txt", "r+")
-    file_data = file.readlines()
-    file.close()
-    for i in file_data:
-        phone = i.strip()
-        historical_phone_list_4.append(phone)
-
-    historical_phone_list_5 = []
-    file = open("5_historical_phones.txt", "r+")
-    file_data = file.readlines()
-    file.close()
-    for i in file_data:
-        phone = i.strip()
-        historical_phone_list_5.append(phone)
-
-    historical_phone_list_6 = []
-    file = open("6_historical_phones.txt", "r+")
-    file_data = file.readlines()
-    file.close()
-    for i in file_data:
-        phone = i.strip()
-        historical_phone_list_6.append(phone)
-
-    historical_phone_list_7 = []
-    file = open("7_historical_phones.txt", "r+")
-    file_data = file.readlines()
-    file.close()
-    for i in file_data:
-        phone = i.strip()
-        historical_phone_list_7.append(phone)
-
-    historical_phone_list_8 = []
-    file = open("8_historical_phones.txt", "r+")
-    file_data = file.readlines()
-    file.close()
-    for i in file_data:
-        phone = i.strip()
-        historical_phone_list_8.append(phone)
-
-    historical_phone_list_9 = []
-    file = open("9_historical_phones.txt", "r+")
-    file_data = file.readlines()
-    file.close()
-    for i in file_data:
-        phone = i.strip()
-        historical_phone_list_9.append(phone)
-
-    historical_url_yelp_list = []
-    file = open("historical_yelp_urls.txt", "r+")
-    file_data = file.readlines()
-    file.close()
-    for i in file_data:
-        url = i.strip()
-        historical_url_yelp_list.append(url)
-
-    historical_url_bbb_list = []
-    file = open("historical_bbb_urls.txt", "r+")
-    file_data = file.readlines()
-    file.close()
-    for i in file_data:
-        url = i.strip()
-        historical_url_bbb_list.append(url)
-
-    historical_url_yp_list = []
-    file = open("historical_yp_urls.txt", "r+")
-    file_data = file.readlines()
-    file.close()
-    for i in file_data:
-        url = i.strip()
-        historical_url_yp_list.append(url)
-
-    return historical_phone_list_2, historical_phone_list_3, historical_phone_list_4, historical_phone_list_5, historical_phone_list_6, historical_phone_list_7, historical_phone_list_8, historical_phone_list_9, historical_url_yelp_list, historical_url_bbb_list, historical_url_yp_list
+    return historical_phones, historical_urls
 
 
 # historical_data_lists = load_historical_data()
 
 
 print("Loading hitorical data....")
-historical_phone_list_2, historical_phone_list_3, historical_phone_list_4, historical_phone_list_5, historical_phone_list_6, historical_phone_list_7, historical_phone_list_8, historical_phone_list_9, historical_url_yelp_list, historical_url_bbb_list, historical_url_yp_list = load_historical_data()
+historical_phones, historical_urls = load_historical_data()
 
 
 def format_phone_number(phone_number):
@@ -190,116 +115,28 @@ def merge_two_dicts(dict_one, dict_two):
 
 
 def duplicate_checker(source, data_point):
-    print(f"phone {data_point}")
+    print(f"data point and source {source} {data_point}")
     data_point = str(data_point)
     unique_status = False
-    if source == "yelp url":
-        if data_point in set(historical_url_yelp_list):
-            unique_status = False
-        else:
-            unique_status = True
-    if source == "bbb url":
-        if data_point in set(historical_url_bbb_list):
-            unique_status = False
-        else:
-            unique_status = True
-    if source == "yp url":
-        if data_point in set(historical_url_yp_list):
-            unique_status = False
-        else:
-            unique_status = True
+
+    if "url" in source.lower():
+        unique_status = False if data_point in historical_urls else True
+
     if source == "phone":
-        api_endpoinT = "https://mfe7wxd6q0.execute-api.us-west-2.amazonaws.com/dev?phone_number=" + data_point
-        api_key = "wDFncJwyDX4HXHD7w0vBQ7cRADAD24jz4KiUCvhS"
-        headers = {'x-api-key': api_key}
-        clean_list = []
         try:
-            first_number = data_point[0]
-        except IndexError:
+            if data_point in historical_phones:
+                unique_status = False
+            else:
+                # query th HC API
+                api_endpoinT = "https://mfe7wxd6q0.execute-api.us-west-2.amazonaws.com/dev?phone_number=" + data_point
+                api_key = "wDFncJwyDX4HXHD7w0vBQ7cRADAD24jz4KiUCvhS"
+                headers = {'x-api-key': api_key}
+                response = requests.get(url=api_endpoinT, headers=headers).text
+                unique_status = False if "salesforce_lead_id" in response else True
+        except:
             unique_status = False
-        else:
-            if first_number == "2":
-                if data_point in historical_phone_list_2:
-                    unique_status = False
-                else:
-                    r = requests.get(url=api_endpoinT, headers=headers)
-                    response = r.text
-                    if "salesforce_lead_id" in response:
-                        unique_status = False
-                    else:
-                        unique_status = True
-            if first_number == "3":
-                if data_point in historical_phone_list_3:
-                    unique_status = False
-                else:
-                    r = requests.get(url=api_endpoinT, headers=headers)
-                    response = r.text
-                    if "salesforce_lead_id" in response:
-                        unique_status = False
-                    else:
-                        unique_status = True
-            if first_number == "4":
-                if data_point in historical_phone_list_4:
-                    unique_status = False
-                else:
-                    r = requests.get(url=api_endpoinT, headers=headers)
-                    response = r.text
-                    if "salesforce_lead_id" in response:
-                        unique_status = False
-                    else:
-                        unique_status = True
-            if first_number == "5":
-                if data_point in historical_phone_list_5:
-                    unique_status = False
-                else:
-                    r = requests.get(url=api_endpoinT, headers=headers)
-                    response = r.text
-                    if "salesforce_lead_id" in response:
-                        unique_status = False
-                    else:
-                        unique_status = True
-            if first_number == "6":
-                if data_point in historical_phone_list_6:
-                    unique_status = False
-                else:
-                    r = requests.get(url=api_endpoinT, headers=headers)
-                    response = r.text
-                    if "salesforce_lead_id" in response:
-                        unique_status = False
-                    else:
-                        unique_status = True
-            if first_number == "7":
-                if data_point in historical_phone_list_7:
-                    unique_status = False
-                else:
-                    r = requests.get(url=api_endpoinT, headers=headers)
-                    response = r.text
-                    if "salesforce_lead_id" in response:
-                        unique_status = False
-                    else:
-                        unique_status = True
-            if first_number == "8":
-                if data_point in historical_phone_list_8:
-                    unique_status = False
-                else:
-                    r = requests.get(url=api_endpoinT, headers=headers)
-                    response = r.text
-                    if "salesforce_lead_id" in response:
-                        unique_status = False
-                    else:
-                        unique_status = True
-            if first_number == "9":
-                if data_point in historical_phone_list_9:
-                    unique_status = False
-                else:
-                    r = requests.get(url=api_endpoinT, headers=headers)
-                    response = r.text
-                    if "salesforce_lead_id" in response:
-                        unique_status = False
-                    else:
-                        unique_status = True
+
     return unique_status
-    # return True  # Remove comment if you want to extract all results
 
 
 def yelp_url_scraper(vertical, location):
@@ -1855,10 +1692,10 @@ def info_scraper(phone_number, pages_per_search_engine):
         translated_phone = browser_phone_translater(phone_number)
         search_url = 'https://www.info.com/serp?q=' + \
             translated_phone + '&page=' + str(i)
-        driver.get(search_url)
-        html_page = driver.page_source
-        page_soup = soup(html_page, 'html.parser')
         try:
+            driver.get(search_url)
+            html_page = driver.page_source
+            page_soup = soup(html_page, 'html.parser')
             no_result_container = page_soup.find(
                 "div", {"class": "notice-noresults-empty"})
             no_result_container = no_result_container.text.strip()
@@ -2248,15 +2085,3 @@ finally:
     driver.close()
 e = time.perf_counter()
 print(f"Finished in {e-s}")
-# try:
-#     s = time.perf_counter()
-#     res = yellowpages_url_and_phone_scraper(
-#         "plumbing", "96752")
-#     e = time.perf_counter()
-#     print(res)
-
-#     print(f"Finished in {e-s}")
-# finally:
-#     driver.close()
-# raw_input("pause")
-# driver.quit()
