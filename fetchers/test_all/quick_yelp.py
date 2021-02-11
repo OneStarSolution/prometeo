@@ -51,7 +51,7 @@ def load_historical_data():
             phones = set([phone.strip() for phone in file.readlines()])
             historical_phones |= phones
 
-    sources = ["yelp", "bb", "yp"]
+    sources = ["yelp", "bbb", "yp"]
     historical_urls = set()
     for source in sources:
         with open(f'historical_{source}_urls.txt', "r+") as file:
@@ -59,9 +59,6 @@ def load_historical_data():
             historical_urls |= urls
 
     return historical_phones, historical_urls
-
-
-# historical_data_lists = load_historical_data()
 
 
 print("Loading hitorical data....")
