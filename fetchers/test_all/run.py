@@ -1,15 +1,19 @@
-# IMPORTED LIBRARIES
-from __future__ import print_function
-from __future__ import division
+import os
+import re
+import time
+
+import requests
+import pandas as pd
+
 from bs4 import BeautifulSoup as soup
 from selenium.webdriver.firefox.options import Options
 from selenium import webdriver
-import pandas as pd
-import re
-import time
-import xlsxwriter
-import requests
-import os
+from fetchers.test_all.data_scrapers.yelp_data_scraper import yelp_data_scraper
+from fetchers.test_all.url_scrapers.yelp_url_scraper import yelp_url_scraper
+from fetchers.test_all.url_scrapers.bbb_url_and_phone_scraper import bbb_url_and_phone_scraper
+from fetchers.test_all.url_scrapers.yp_url_and_phone_scraper import yp_url_and_phone_scraper
+from fetchers.test_all.utils.clean_utils import (format_phone_number, remove_phone_format,
+                                                 string_cleaner)
 
 
 def get_locations():
@@ -32,533 +36,10 @@ verticals = ["hvac"]  # 'plumbing', 'restoration'
 # , "24715", "01035", "01036", "39823", "61232", "83543", "99841", "85033"
 locations = get_locations()
 
-
-no_new_data_list = []
-#chrome_options = Options()
-# chrome_options.add_argument('--headless')
-# chrome_options.add_argument('--no-sandbox')
-# chrome_options.add_argument('--disable-dev-shm-usage')
 firefox_options = Options()
 firefox_options.headless = True
 driver = webdriver.Firefox(
     executable_path="/usr/local/share/geckodriver", options=firefox_options)
-
-
-def load_historical_data():
-    historical_phones = set()
-    for i in range(2, 10):
-        with open(f'{i}_historical_phones.txt', "r+") as file:
-            phones = set([phone.strip() for phone in file.readlines()])
-            historical_phones |= phones
-
-    sources = ["yelp", "bbb", "yp"]
-    historical_urls = set()
-    for source in sources:
-        with open(f'historical_{source}_urls.txt', "r+") as file:
-            urls = set([url.strip() for url in file.readlines()])
-            historical_urls |= urls
-
-    return historical_phones, historical_urls
-
-
-print("Loading hitorical data....")
-historical_phones, historical_urls = load_historical_data()
-
-
-def format_phone_number(phone_number):
-    try:
-        formatted_phone = ('(%s) %s-%s' %
-                           tuple(re.findall(r'\d{4}$|\d{3}', phone_number)))
-    except:
-        formatted_phone = phone_number
-    return formatted_phone
-
-
-def remove_phone_format(string):
-    digit_list = []
-    clean_string = ""
-    for char in string:
-        if char.isdigit():
-            digit_list.append(char)
-    for x in digit_list:
-        clean_string += x
-    return clean_string
-
-
-def string_cleaner(string):
-    string = str(string)
-    trailing_punctuation_marks = [".", ",", ";",
-                                  "-", "?", "'", '"', ")", "(", "{", "}", "/", ]
-    string = string.lower()
-    # string = string.encode("ascii", "ignore")
-    if 'apos;' in string:
-        string = string.replace("&amp;apos;", "'")
-    if "&amp;" in string:
-        string = string.replace(" &amp; ", "&")
-    if "&amp;&amp;" in string:
-        string = string.replace("&amp;&amp;", "&")
-    if len(string) > 3:
-        for punctuation_mark in trailing_punctuation_marks:
-            if string[-1] == punctuation_mark:
-                string = string[:-1]
-                break
-    return string
-
-
-def merge_two_dicts(dict_one, dict_two):
-    combined_dict = dict_one.copy()
-    combined_dict.update(dict_two)
-    return combined_dict
-
-
-def duplicate_checker(source, data_point):
-    print(f"data point and source {source} {data_point}")
-    data_point = str(data_point)
-    unique_status = False
-
-    if "url" in source.lower():
-        unique_status = False if data_point in historical_urls else True
-
-    if source == "phone":
-        try:
-            if data_point in historical_phones:
-                unique_status = False
-            else:
-                # query th HC API
-                api_endpoinT = "https://mfe7wxd6q0.execute-api.us-west-2.amazonaws.com/dev?phone_number=" + data_point
-                api_key = "wDFncJwyDX4HXHD7w0vBQ7cRADAD24jz4KiUCvhS"
-                headers = {'x-api-key': api_key}
-                response = requests.get(url=api_endpoinT, headers=headers).text
-                unique_status = False if "salesforce_lead_id" in response else True
-        except:
-            unique_status = False
-
-    return unique_status
-
-
-def yelp_url_scraper(vertical, location):
-    url_list = []
-    yelp_domain = {"domain": "https://www.yelp.com/search?find_desc=", "vertical": "plumbing",
-                   "mid_string": "&find_loc=", "location": "85033", "end_string": "&ns=1&start="}
-    for page in range(17):  # default value is 17 here
-        directory_page = page*10
-        yelp_url = yelp_domain["domain"] + vertical + yelp_domain["mid_string"] + \
-            location + yelp_domain["end_string"] + str(directory_page)
-        # print(space + '\n' + yelp_url)
-        try:
-            driver.get(yelp_url)
-            html_page = driver.page_source
-        except:
-            print("error fetching the html for this page")
-        else:
-            page_soup = soup(html_page, 'html.parser')
-        try:
-            no_result_container = page_soup.find(
-                "div", {"class": "display--inline-block__09f24__FsgS4 margin-b1__09f24__1647o border-color--default__09f24__R1nRO"})
-            no_result = no_result_container.text.strip()
-            if "Suggestions for improving" in no_result:
-                # print("[*] No more results, moving to next location")
-                break
-        except:
-            pass
-        lead_container = page_soup.findAll(
-            'div', {'class': 'container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__1H_WE border--right__09f24__28idl border--bottom__09f24__2FjZW border--left__09f24__33iol border-color--default__09f24__R1nRO'})
-        for lead in lead_container:
-            for link in lead.find_all('a'):
-                link = link.get('href')
-                link = str(link)
-                if '/biz/' in link:
-                    link = link.replace('/biz', 'www.yelp.com/biz')
-                    link = link.split("?")[0]
-                    link = link.split('.com')[1]
-                    link = "www.yelp.com" + link
-                    if link in url_list:
-                        pass
-                    else:
-                        status = duplicate_checker("yelp url", link)
-                        if status:
-                            url_list.append(link)
-                            break
-    return(url_list)
-
-
-def yelp_data_scraper(url_list, source_phone):
-    print(space)
-    import json
-    import time
-    string = False
-    accepts_cc = ""
-    phone_number = ""
-    category_two = ""
-    category_three = ""
-    category_three = ""
-    contact_name = ""
-    contact_title = ""
-    website = ""
-    if type(url_list) == type(""):
-        validated = False
-        single_value = url_list
-        string = True
-        url_list = []
-        url_list.append(single_value)
-        print(single_value)
-    unique_data_list = []
-    new_lead_dict_list = []
-    for url in url_list:
-        print(space)
-        # print(space)
-        temp_snippet_list = []
-        try:
-            driver.get("https://" + url)
-            # time.sleep(1.5)
-            html_page = driver.page_source
-            page_soup = soup(html_page, 'html.parser')
-        except:
-            print("Error fetching the html for this page:" + url)
-        else:
-            if "not allowed to access this page" in page_soup.text:
-                raw_input(
-                    "exceeded request limit, change ip address to continue")
-        json_snippets = page_soup.findAll(
-            "script", {"type": "application/ld+json"})
-        if len(json_snippets) == 1:
-            snippet = json_snippets[0]
-            snippet = str(snippet).split(
-                '<script type="application/ld+json">')[1]
-            snippet = snippet.split('</script>')[0]
-            json_block_one = json.loads(snippet)
-            try:
-                phone_number = str(json_block_one["telephone"])
-                phone_number = str(json_block_one["telephone"])
-                phone_number = re.sub("[^0-9]", "", phone_number)
-                phone_number = string_cleaner(phone_number)
-                print("Phone number: " + phone_number)
-            except:
-                phone_number = " "
-        else:
-            for snippet in json_snippets:
-                clean_snippet_list = []
-                snippet = str(snippet).split(
-                    '<script type="application/ld+json">')[1]
-                snippet = snippet.split('</script>')[0]
-                temp_snippet_list.append(snippet)
-            try:
-                json_block_one = json.loads(temp_snippet_list[0])
-                json_block_two = json.loads(temp_snippet_list[1])
-                json_block_three = json.loads(temp_snippet_list[2])
-            except:
-                pass
-            else:
-                try:
-                    phone_number = str(json_block_one["telephone"])
-                    phone_number = re.sub("[^0-9]", "", phone_number)
-                    phone_number = string_cleaner(phone_number)
-                    print("Phone number: " + phone_number)
-                except:
-                    phone_number = " "
-        if string == False:
-            status = duplicate_checker('phone', phone_number)
-        if string:
-            status = True
-        if status:
-            new_lead_dict = {}
-            new_lead_dict["yelp url"] = url
-            if phone_number == source_phone:
-                validated = True
-            if source_phone == "":
-                validated = "null"
-            print("Validated: " + str(validated))
-            new_lead_dict["validated"] = validated
-            new_lead_dict["phone"] = phone_number
-            try:
-                company_name = str(json_block_one["name"])
-                company_name = string_cleaner(company_name)
-                print("Company Name: " + company_name)
-            except:
-                company_name = ""
-            new_lead_dict["company_name"] = company_name
-            try:
-                address = json_block_one["address"]["streetAddress"]
-                address = string_cleaner(address)
-                print("address: " + address)
-            except:
-                address = ""
-            new_lead_dict["address"] = address
-            try:
-                city = str(json_block_one["address"]["addressLocality"])
-                city = string_cleaner(city)
-                print("city: " + city)
-            except:
-                city = ""
-            new_lead_dict["city"] = city
-            try:
-                state = str(json_block_one["address"]["addressRegion"])
-                state = string_cleaner(state)
-                print("state: " + state)
-            except:
-                state = ""
-            new_lead_dict["state"] = state
-            try:
-                zip_code = json_block_one["address"]["postalCode"]
-                zip_code = string_cleaner(zip_code)
-                print("zip_code: " + zip_code)
-            except:
-                zip_code = ""
-            new_lead_dict["zip_code"] = zip_code
-            try:
-                rating = str(json_block_one["aggregateRating"]["ratingValue"])
-                rating = string_cleaner(rating)
-                print("Rating: " + rating)
-            except:
-                rating = ""
-            new_lead_dict["rating"] = rating
-            try:
-                review = str(json_block_one["aggregateRating"]["reviewCount"])
-                review = string_cleaner(review)
-                print("Reviews: " + review)
-            except:
-                review = ""
-            new_lead_dict["review"] = review
-            try:
-                category_container = page_soup.findAll(
-                    "div", {"class": "arrange__373c0__2C9bH gutter-2__373c0__1DiLQ border-color--default__373c0__3-ifU"})
-                category_container = category_container[1]
-                categories = category_container.findAll(
-                    "span", {"class": "text__373c0__2Kxyz text-color--black-regular__373c0__2vGEn text-align--left__373c0__2XGa- text-weight--semibold__373c0__2l0fe text-size--large__373c0__3t60B"})
-                try:
-                    back_up_cat_containers = category_container.findAll(
-                        "span", {"class": "display--inline__373c0__3JqBP margin-r1__373c0__zyKmV border-color--default__373c0__3-ifU"})
-                except:
-                    pass
-            except:
-                category_one = ""
-                category_two = ""
-                category_three = ""
-            else:
-                try:
-                    category_one = categories[0].text.strip()
-                except:
-                    category_one = back_up_cat_containers[0].text.strip()
-                    if 'review' in category_one:
-                        category_one = back_up_cat_containers[1].text.strip()
-                        try:
-                            category_two = back_up_cat_containers[2].text.strip(
-                            )
-                            try:
-                                category_three = back_up_cat_containers[3].text.strip(
-                                )
-                            except:
-                                category_three = ""
-                        except:
-                            category_two = ""
-                            category_three = ""
-                    else:
-                        try:
-                            category_two = back_up_cat_containers[1].text.strip(
-                            )
-                            try:
-                                category_three = back_up_cat_containers[2].text.strip(
-                                )
-                            except:
-                                category_three = ""
-                        except:
-                            category_two = ""
-                            category_three = ""
-                else:
-                    try:
-                        if 'review' in category_one:
-                            category_one = categories[1].text.strip()
-                            try:
-                                category_two = categories[2].text.strip()
-                                try:
-                                    category_three = categories[3].text.strip()
-                                except:
-                                    category_three = ""
-                            except:
-                                category_two = ""
-                                category_three = ""
-                        else:
-                            try:
-                                category_two = categories[1].text.strip()
-                                try:
-                                    category_three = categories[2].text.strip()
-                                except:
-                                    category_three = ""
-                            except:
-                                category_two = ""
-                                category_three = ""
-                    except:
-                        category_one = ""
-                        category_two = ""
-                        category_three = ""
-            if 'laimed' in category_one:
-                category_one = ""
-            category_one = string_cleaner(category_one)
-            category_two = string_cleaner(category_two)
-            category_three = string_cleaner(category_three)
-            new_lead_dict["category_one"] = category_one
-            new_lead_dict["category_two"] = category_two
-            new_lead_dict["category_three"] = category_three
-            print("Category one: " + category_one + "\nCategory two: " +
-                  category_two + "\nCategory three: " + category_three)
-            try:
-                website_container = page_soup.findAll(
-                    "div", {"class": "arrange__373c0__2C9bH gutter-2__373c0__1DiLQ vertical-align-middle__373c0__1SDTo border-color--default__373c0__3-ifU"})
-                for container in website_container:
-                    if "Business website" in str(container):
-                        website = container.find("a", {"role": "link"})
-                        website = website.text.strip()
-                        website = string_cleaner(website)
-                        print("Website: " + website)
-                        break
-                    else:
-                        website = ""
-            except:
-                website = ""
-            new_lead_dict["website"] = website
-            try:
-                claimed_container = page_soup.find("span", {
-                                                   "class": "text__373c0__2Kxyz claim-text--dark__373c0__xRoSM text-color--blue-regular__373c0__QFzix text-align--left__373c0__2XGa- text-weight--semibold__373c0__2l0fe text-bullet--after__373c0__3fS1Z text-size--large__373c0__3t60B"})
-                if claimed_container == None:
-                    claimed_container = page_soup.find("span", {
-                                                       "class": "text__373c0__2Kxyz claim-text--dark__373c0__xRoSM text-color--black-extra-light__373c0__2OyzO text-align--left__373c0__2XGa- text-weight--semibold__373c0__2l0fe text-bullet--after__373c0__3fS1Z text-size--large__373c0__3t60B"})
-                    claimed = claimed_container.text.strip()
-                    claimed = string_cleaner(claimed)
-                    print("Claimed status: " + claimed)
-                else:
-                    claimed = claimed_container.text.strip()
-                    claimed = string_cleaner(claimed)
-                    print("Claimed status: " + claimed)
-            except:
-                claimed = ""
-            new_lead_dict["claimed"] = claimed
-            try:
-                about_the_business_container = page_soup.find(
-                    "section", {"aria-label": "About the Business"})
-                contact_name = about_the_business_container.find(
-                    "p", {"class": "text__373c0__2Kxyz text-color--normal__373c0__3xep9 text-align--left__373c0__2XGa- text-weight--bold__373c0__1elNz text-size--large__373c0__3t60B"})
-                contact_name = contact_name.text.strip()
-                try:
-                    contact_title = about_the_business_container.find(
-                        "p", {"class": "text__373c0__2Kxyz text-color--black-extra-light__373c0__2OyzO text-align--left__373c0__2XGa-"})
-                    contact_title = contact_title.text.strip()
-                except:
-                    contact_title = ""
-            except:
-                contact_name = ""
-                contact_title = ""
-            contact_name = string_cleaner(contact_name)
-            contact_title = string_cleaner(contact_title)
-            new_lead_dict["contact_name"] = contact_name
-            new_lead_dict["contact_title"] = contact_title
-            print("Contact name: " + contact_name +
-                  "\nContact title: " + contact_title)
-            try:
-                question_containers = page_soup.findAll(
-                    "div", {"class": "padding-b4__373c0__uiolV border-color--default__373c0__3-ifU"})
-                for container in question_containers:
-                    container = container.text.strip()
-                    if "What forms of payment are accepted" in container:
-                        accepts_cc = container.split("?")[1]
-                        accepts_cc = string_cleaner(accepts_cc)
-                        print("Accepts cc: " + accepts_cc)
-                        break
-                    else:
-                        accepts_cc = ""
-            except:
-                accepts_cc = ""
-            new_lead_dict["accepts_cc"] = accepts_cc
-            try:
-                new_lead_dict_list.append(new_lead_dict)
-            except:
-                pass
-    return new_lead_dict_list
-
-
-def bbb_url_and_phone_scraper(vertical, location):
-
-    if location.isdigit():
-        country = "USA"
-    else:
-        country = "CAN"
-    bbb_url_list = []
-    bbb_phone_list = []
-    new_lead_dict_list = []
-    already_clicked = False
-    bbb_domain = {"domain": "https://www.bbb.org/search?find_country=", "country": "USA", "mid_string": "&find_loc=",
-                  "location": "85033", "mid_string_2": "&find_text=", "vertical": "plumbing", "end_string": "&page=", "page": "1"}
-    for page in range(1, 17):  # Default value is 17
-        bbb_url = bbb_domain["domain"] + country + bbb_domain["mid_string"] + location + \
-            bbb_domain["mid_string_2"] + vertical + \
-            bbb_domain["end_string"] + str(page)
-        # print(space + '\n' + bbb_url)
-        try:
-            driver.get(bbb_url)
-            if already_clicked == False:
-                try:
-                    time.sleep(1.5)
-                    element = driver.find_element_by_xpath(
-                        "/html/body/div[2]/div[3]/div/form/div[2]/fieldset/div[1]/label[2]/div/p").click()
-                except:
-                    pass
-                else:
-                    already_clicked = True
-            html_page = driver.page_source
-        except:
-            print("error fetching the html for this page")
-        else:
-            page_soup = soup(html_page, 'html.parser')
-        try:
-            no_result_container = page_soup.find(
-                "h2", {"class": "MuiTypography-root search-no-results__title MuiTypography-h2"})
-            no_result = no_result_container.text.strip()
-            if "sorry, we found no results" in no_result:
-                # print("[*] No more results, moving to next location")
-                break
-            if "Sin resultado" in no_result:
-                # print("[*] No more results, moving to next location")
-                break
-        except:
-            pass
-        lead_container = page_soup.findAll(
-            'div', {'class': 'Content-ro0uyh-0 cAMAUQ result-item__content'})
-        for lead in lead_container:
-            new_lead_dict = {}
-            link = ""
-            phone_number = ""
-            for link in lead.find_all('a'):
-                link = link.get('href')
-                link = link.encode('ascii', 'ignore')
-                link = str(link)
-                if '/profile/' in link:
-                    if 'bbb.org' in link:
-                        source_url = link
-                        source_url = source_url.split("https://")[1]
-                        if '?' in source_url:
-                            source_url = source_url.split("?")[0]
-                if 'tel' in link:
-                    try:
-                        phone_number = link.split("+")[1]
-                        phone_number = phone_number[2:]
-                        phone_number = phone_number.replace("-", "")
-                    except:
-                        phone_number = " "
-            if source_url in bbb_url_list:
-                pass
-            else:
-                if phone_number in bbb_phone_list:
-                    pass
-                else:
-                    url_status = duplicate_checker('bbb url', source_url)
-                    if url_status:
-                        status = duplicate_checker('phone', phone_number)
-                        if status:
-                            bbb_url_list.append(source_url)
-                            bbb_phone_list.append(phone_number)
-                            new_lead_dict["bbb url"] = source_url
-                            new_lead_dict["phone"] = phone_number
-                            new_lead_dict_list.append(new_lead_dict)
-    return(new_lead_dict_list)
 
 
 def bbb_data_scraper(url, source_phone):
@@ -572,8 +53,7 @@ def bbb_data_scraper(url, source_phone):
         url = url + '/details'
     url = "https://" + url
     print(url)
-    import json
-    import ast
+
     company_name = ""
     phone_number = ""
     city = ""
@@ -1516,106 +996,12 @@ def yellowpages_data_scraper(url, source_phone):
     return new_data_list
 
 
-def yellowpages_url_and_phone_scraper(vertical, location):
-    yp_url_list = []
-    yp_phone_list = []
-    new_lead_dict_list = []
-    yp_domain = {"domain": "https://www.yellowpages.com/search?search_terms=", "vertical": "plumbing",
-                 "mid_string": "&geo_location_terms=", "location": "85033", "end_string": "&page=", "page": "1"}
-    for page in range(1, 50):  # set to 99, changed to 5 for testing purposes
-        yp_url = yp_domain["domain"] + vertical + yp_domain["mid_string"] + \
-            location + yp_domain["end_string"] + str(page)
-        # print(space + '\n' + yp_url)
-        try:
-            print(f"trying to get: {yp_url}")
-            driver.get(yp_url)
-
-            html_page = driver.page_source
-        except:
-            print("error fetching the html for this page")
-        else:
-            page_soup = soup(html_page, 'html.parser')
-        try:
-            lead_container = page_soup.find(
-                "div", {"class": "search-results organic"})
-            if lead_container is None:
-                # print("[*] No more results, moving to next location")
-                break
-        except:
-            pass
-        else:
-            lead_container = lead_container.findAll("div", {"class": "v-card"})
-            for lead in lead_container:
-                new_lead_dict = {}
-                link = ""
-                phone_number = " "
-                for link in lead.find_all('a'):
-                    link = link.get('href')
-                    link = str(link)
-                    if '/mip/' in link:
-                        source_url = link
-                        source_url = "www.yellowpages.com" + \
-                            source_url.split("?")[0]
-                        if source_url[-1].isdigit():
-                            pass
-                        else:
-                            extra_string = source_url.split("/")[-1]
-                            extra_string = "/" + extra_string
-                            source_url = source_url.replace(extra_string, "")
-                            print(source_url)
-                        break
-                try:
-                    phone_number = lead.find(
-                        "div", {"class": "phones phone primary"})
-                    phone_number = phone_number.text.strip()
-                    phone_number = re.sub("[^0-9]", "", phone_number)
-                    phone_number = phone_number.encode('ascii', 'ignore')
-                    # print(phone_number)
-                except:
-                    phone_number = ""
-                if source_url in yp_url_list:
-                    pass
-                else:
-                    if phone_number in yp_phone_list:
-                        pass
-                    else:
-                        url_status = duplicate_checker('yp url', source_url)
-                        if url_status:
-                            status = duplicate_checker('phone', phone_number)
-                            if status:
-                                yp_url_list.append(source_url)
-                                yp_phone_list.append(phone_number)
-                                new_lead_dict["yp url"] = source_url
-                                new_lead_dict["phone"] = phone_number
-                                new_lead_dict_list.append(new_lead_dict)
-    return(new_lead_dict_list)
-
-
 def primary_sources_merge(dict_one, dict_two, dict_three, number_of_empty_lists):
     de_duped_lead_list = []
     unique_phone_list = []
     all_results = dict_one + dict_two + dict_three
     all_results = [elem for elem in all_results if elem]
-    # temp_list_storage = []
-    # temp_list_storage.append(dict_one)
-    # temp_list_storage.append(dict_two)
-    # temp_list_storage.append(dict_three)
-    # if number_of_empty_lists == 2:
-    #     for dict_list in temp_list_storage:
-    #         if dict_list == [{}]:
-    #             pass
-    #         else:
-    #             all_results = dict_list
-    #             break
-    # if number_of_empty_lists == 1:
-    #     if dict_one == [{}]:
-    #         all_results = dict_two + dict_three
-    #     if dict_two == []:
-    #         all_results = dict_one + dict_three
-    #     if dict_three == []:
-    #         all_results = dict_one + dict_two
-    # if number_of_empty_lists == 0:
-    #     all_results = dict_one + dict_two + dict_three
+
     for result in all_results:
         phone_number = result.get("phone")
         if phone_number in unique_phone_list:
@@ -1966,7 +1352,7 @@ def post_enhancement_data_scrape(enhanced_lead_data):
                     pass
                 else:
                     # temp_list = [value]
-                    yelp_data = yelp_data_scraper(value, phone_number)
+                    yelp_data = yelp_data_scraper(driver, value, phone_number)
                     new_yelp_data = yelp_data[0]
                     new_data_dictionaries.append(new_yelp_data)
             if 'bbb.org' in value:
@@ -2031,9 +1417,10 @@ try:
             print(space + "\n" "Current vertical: " + vertical +
                   "\n" + "Current location: " + location + "\n" + space)
             print("[*] Scraping for yelp urls [*]")
-            unique_yelp_url_list = yelp_url_scraper(vertical, location)
+            unique_yelp_url_list = yelp_url_scraper(driver, vertical, location)
             print("[*] Scraping data from yelp urls [*]")
-            new_yelp_leads = yelp_data_scraper(unique_yelp_url_list, '')
+            new_yelp_leads = yelp_data_scraper(
+                driver, unique_yelp_url_list, '')
             print("[*] Saving scraped yelp data [*]")
             dictionary_dataframe = pd.DataFrame(new_yelp_leads)
             dictionary_dataframe.to_excel(
@@ -2053,9 +1440,9 @@ try:
                     new_yelp_url_and_phones.append(yelp_url_and_phone_dict)
             print("[*] Scraping for bbb Phones and urls [*]")
             new_bbb_url_and_phones = bbb_url_and_phone_scraper(
-                vertical, location)
+                driver, vertical, location)
             print("[*] Scraping for yp phones and urls [*]")
-            new_yp_url_and_phones = yellowpages_url_and_phone_scraper(
+            new_yp_url_and_phones = yp_url_and_phone_scraper(
                 vertical, location)
             print("[*] Checking for empty lists [*]")
             number_of_empty_lists = check_for_no_results(

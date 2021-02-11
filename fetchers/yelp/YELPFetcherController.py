@@ -26,10 +26,11 @@ class YELPFetcherController:
 
     def _read_web(self):
         try:
+            print("enttreee aquiii")
             # Delete cookies
             self.driver.delete_all_cookies()
 
-            logging.info(
+            print(
                 f"Attempting to crawl Yelp using business: {self.url_base}")
 
             # As YELP don't use to fail just try to connect directly
@@ -44,7 +45,7 @@ class YELPFetcherController:
                 # )
                 time.sleep(5)
             except TimeoutException:
-                logging.info(
+                print(
                     "Title is not in the screen after wait. Aborting!")
                 return None
 
