@@ -13,7 +13,11 @@ def google_scraper(driver, phone_number, pages_per_search_engine):
     translated_phone = browser_phone_translater(phone_number)
     search_url = 'https://www.google.com/search?q=' + \
         translated_phone + '&num=' + str(pages_per_search_engine)
-    driver.get(search_url)
+    try:
+        driver.get(search_url)
+    except Exception as e:
+        print(e)
+        return []
     html_page = driver.page_source
     page_soup = soup(html_page, 'html.parser')
     result_containers = page_soup.findAll("div", {"class": "yuRUbf"})
