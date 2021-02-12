@@ -19,7 +19,7 @@ def info_scraper(driver, phone_number, pages_per_search_engine):
                 driver.get(search_url)
             except Exception as e:
                 print(e)
-                return []
+                return [], blocked
             html_page = driver.page_source
             page_soup = soup(html_page, 'html.parser')
             no_result_container = page_soup.find(
