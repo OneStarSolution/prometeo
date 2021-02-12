@@ -19,10 +19,12 @@ def yelp_url_scraper(driver, vertical, location):
             page_soup = soup(html_page, 'html.parser')
             no_result_container = page_soup.find(
                 "div", {"class": "display--inline-block__09f24__FsgS4 margin-b1__09f24__1647o border-color--default__09f24__R1nRO"})
-            no_result = no_result_container.text.strip()
-            if "Suggestions for improving" in no_result:
-                # print("[*] No more results, moving to next location")
-                break
+
+            if no_result_container:
+                no_result = no_result_container.text.strip()
+                if "Suggestions for improving" in no_result:
+                    # print("[*] No more results, moving to next location")
+                    break
             lead_container = page_soup.findAll(
                 'div', {'class': 'container__09f24__21w3G hoverable__09f24__2nTf3 margin-t3__09f24__5bM2Z margin-b3__09f24__1DQ9x padding-t3__09f24__-R_5x padding-r3__09f24__1pBFG padding-b3__09f24__1vW6j padding-l3__09f24__1yCJf border--top__09f24__1H_WE border--right__09f24__28idl border--bottom__09f24__2FjZW border--left__09f24__33iol border-color--default__09f24__R1nRO'})
 

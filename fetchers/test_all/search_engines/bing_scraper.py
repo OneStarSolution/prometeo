@@ -1,4 +1,11 @@
-def bing_scraper(phone_number, pages_per_search_engine):
+from bs4 import BeautifulSoup as soup
+
+from fetchers.test_all.utils.search_engine_utils import (browser_phone_translater,
+                                                         source_url_filter,
+                                                         valid_domain_check)
+
+
+def bing_scraper(driver, phone_number, pages_per_search_engine):
     # print(space)
     bing_results = []
     # pages_per_search_engine = pages_per_search_engine + 1

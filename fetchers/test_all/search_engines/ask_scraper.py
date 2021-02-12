@@ -1,4 +1,11 @@
-def ask_scraper(phone_number, pages_per_search_engine):
+from bs4 import BeautifulSoup as soup
+
+from fetchers.test_all.utils.search_engine_utils import (browser_phone_translater,
+                                                         source_url_filter,
+                                                         valid_domain_check)
+
+
+def ask_scraper(driver, phone_number, pages_per_search_engine):
     # print(space)
     ask_results = []
     pages_per_search_engine = pages_per_search_engine + 1
@@ -15,7 +22,8 @@ def ask_scraper(phone_number, pages_per_search_engine):
             no_result_container = no_result_container.text.strip()
             if 'we did not find any results' in no_result_container:
                 break
-        except:
+        except Exception as e:
+            print(e)
             pass
         result_containers = page_soup.findAll(
             "div", {"class": "PartialSearchResults-item"})

@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup as soup
 from fetchers.test_all.utils.duplicate_checker import duplicate_checker
 
 
-def yellowpages_url_and_phone_scraper(driver, vertical, location):
+def yp_url_and_phone_scraper(driver, vertical, location):
     yp_url_list = []
     yp_phone_list = []
     new_lead_dict_list = []

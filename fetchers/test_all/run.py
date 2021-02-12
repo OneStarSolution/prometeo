@@ -1,20 +1,21 @@
 import os
-import re
 import time
 
-import requests
 import pandas as pd
 
 from bs4 import BeautifulSoup as soup
 from selenium.webdriver.firefox.options import Options
 from selenium import webdriver
+from fetchers.test_all.utils.clean_utils import format_phone_number
 from fetchers.test_all.data_scrapers.yelp_data_scraper import yelp_data_scraper
-from fetchers.test_all.data_scrapers.bbb_data_scraper import bbb_data_scraper
+# from fetchers.test_all.data_scrapers.bbb_data_scraper import bbb_data_scraper
 from fetchers.test_all.url_scrapers.yelp_url_scraper import yelp_url_scraper
 from fetchers.test_all.url_scrapers.bbb_url_and_phone_scraper import bbb_url_and_phone_scraper
 from fetchers.test_all.url_scrapers.yp_url_and_phone_scraper import yp_url_and_phone_scraper
-from fetchers.test_all.utils.clean_utils import (format_phone_number, remove_phone_format,
-                                                 string_cleaner)
+from fetchers.test_all.search_engines.ask_scraper import ask_scraper
+from fetchers.test_all.search_engines.bing_scraper import bing_scraper
+from fetchers.test_all.search_engines.info_scraper import info_scraper
+from fetchers.test_all.search_engines.google_scraper import google_scraper
 
 
 def get_locations():
@@ -34,7 +35,6 @@ space = "*" * 75
 
 verticals = ["hvac"]  # 'plumbing', 'restoration'
 
-# , "24715", "01035", "01036", "39823", "61232", "83543", "99841", "85033"
 locations = get_locations()
 
 firefox_options = Options()
@@ -65,56 +65,6 @@ def primary_sources_merge(dict_one, dict_two, dict_three, number_of_empty_lists)
                 unique_lead[url_key] = list(result.values())[1]
         de_duped_lead_list.append(unique_lead)
     return de_duped_lead_list
-
-
-def valid_domain_check(url):
-    valid_domain = False
-    valid_domains = ['yelp.com', 'bbb.org', 'yellowpages.com',
-                     'manta.com', 'mapquest.com', 'chamberofcommerce.com']
-    for domain in valid_domains:
-        if domain in url:
-            valid_domain = True
-            break
-    return valid_domain
-
-
-def source_url_filter(url):
-    valid_url = False
-    if 'yelp.com' in url:
-        if '/biz/' in url:
-            valid_url = True
-    elif 'bbb.org' in url:
-        if '/profile/' in url:
-            valid_url = True
-    elif 'yellowpages.com' in url:
-        if '/mip/' in url:
-            valid_url = True
-    elif 'mapquest.com' in url:
-        if '/us/' in url:
-            valid_url = True
-        if '/ca/' in url:
-            valid_url = True
-        if '/canada/' in url:
-            valid_url = True
-    elif 'manta.com' in url:
-        if '/c/' in url:
-            valid_url = True
-    elif 'chamberofcommerce.com' in url:
-        if '/united-states/' in url:
-            valid_url = True
-        if '/canada/' in url:
-            valid_url = True
-    return valid_url
-
-
-def browser_phone_translater(phone_number):
-    if isinstance(phone_number, bytes):
-        phone_number = phone_number.decode("utf-8")
-
-    translated_phone = phone_number.replace("(", "%28")
-    translated_phone = translated_phone.replace(")", "%29")
-    translated_phone = translated_phone.replace(" ", "+")
-    return translated_phone
 
 
 def append_source_urls_to_lead(lead, unique_url_list):
@@ -166,11 +116,13 @@ def search_engine_scraper(unique_list, pages_per_search_engine):
         phone_number = lead['phone']
         formatted_phone = format_phone_number(phone_number)
         info_url_list, info_blocked = info_scraper(
-            formatted_phone, pages_per_search_engine)
-        ask_url_list = ask_scraper(formatted_phone, pages_per_search_engine)
+            driver, formatted_phone, pages_per_search_engine)
+        ask_url_list = ask_scraper(
+            driver, formatted_phone, pages_per_search_engine)
         google_url_list, google_blocked = google_scraper(
-            formatted_phone, pages_per_search_engine)
-        bing_url_list = bing_scraper(formatted_phone, pages_per_search_engine)
+            driver, formatted_phone, pages_per_search_engine)
+        bing_url_list = bing_scraper(
+            driver, formatted_phone, pages_per_search_engine)
         found_urls = info_url_list + ask_url_list + google_url_list + bing_url_list
         for i in found_urls:
             for v in lead.values():
@@ -325,13 +277,16 @@ try:
             else:
                 print("[*] Merging yelp, bbb and yp phones and urls [*]")
                 de_duped_lead_list = primary_sources_merge(
-                    new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones, number_of_empty_lists)
+                    new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones,
+                    number_of_empty_lists)
                 print("[*] Saving yelp, bbb and yp source phones and urls [*]")
                 dictionary_dataframe = pd.DataFrame(de_duped_lead_list)
                 dictionary_dataframe.to_excel(
                     "data/phones_urls/" + vertical + "-" + location + "-phones_and_urls.xlsx")
                 print("Saved")
-                print("[*] Passing list of scraped phone numbers through the search engine scraper [*]\n[*] Adding enhancmenet source urls to phone numbers [*]")
+                print(
+                    "[*] Passing list of scraped phone numbers through the search engines [*]")
+                print("[*] Adding enhancmenet source urls to phone numbers [*]")
                 enhanced_lead_data = search_engine_scraper(
                     de_duped_lead_list, 2)
                 print("[*] Saving enhanced phones and urls [*]")
