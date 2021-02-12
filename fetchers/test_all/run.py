@@ -115,15 +115,17 @@ def search_engine_scraper(unique_list, pages_per_search_engine):
         unique_url_list = []
         phone_number = lead['phone']
         formatted_phone = format_phone_number(phone_number)
-        info_url_list, info_blocked = info_scraper(
-            driver, formatted_phone, pages_per_search_engine)
+        # info_url_list, info_blocked = info_scraper(
+        #     driver, formatted_phone, pages_per_search_engine)
         ask_url_list = ask_scraper(
             driver, formatted_phone, pages_per_search_engine)
         google_url_list, google_blocked = google_scraper(
             driver, formatted_phone, pages_per_search_engine)
         bing_url_list = bing_scraper(
             driver, formatted_phone, pages_per_search_engine)
-        found_urls = info_url_list + ask_url_list + google_url_list + bing_url_list
+        # found_urls = info_url_list + ask_url_list + google_url_list + bing_url_list
+        found_urls = ask_url_list + google_url_list + bing_url_list
+
         for i in found_urls:
             for v in lead.values():
                 if i == v:
@@ -136,7 +138,7 @@ def search_engine_scraper(unique_list, pages_per_search_engine):
         enhanced_lead = append_source_urls_to_lead(lead, unique_url_list)
         list_of_enhanced_leads.append(enhanced_lead)
         block_check_list = []
-        block_check_list.append(info_blocked)
+        # block_check_list.append(info_blocked)
         block_check_list.append(google_blocked)
         # block_check_list.append(ask_blocked)
         # block_check_list.append(bing_blocked)
