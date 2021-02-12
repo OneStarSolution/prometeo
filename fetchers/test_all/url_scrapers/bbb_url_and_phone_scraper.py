@@ -30,7 +30,9 @@ def bbb_url_and_phone_scraper(driver, vertical, location):
                 try:
                     time.sleep(1.5)
                     xp = "/html/body/div[2]/div[3]/div/form/div[2]/fieldset/div[1]/label[2]/div/p"
-                    driver.find_element_by_xpath(xp).click()
+                    elem = driver.find_element_by_xpath(xp)
+                    if elem:
+                        elem.click()
                 except Exception as e:
                     print(e)
                     pass
@@ -41,13 +43,15 @@ def bbb_url_and_phone_scraper(driver, vertical, location):
 
             no_result_container = page_soup.find(
                 "h2", {"class": "MuiTypography-root search-no-results__title MuiTypography-h2"})
-            no_result = no_result_container.text.strip()
-            if "sorry, we found no results" in no_result:
-                # print("[*] No more results, moving to next location")
-                break
-            if "Sin resultado" in no_result:
-                # print("[*] No more results, moving to next location")
-                break
+
+            if no_result_container:
+                no_result = no_result_container.text.strip()
+                if "sorry, we found no results" in no_result:
+                    # print("[*] No more results, moving to next location")
+                    break
+                if "Sin resultado" in no_result:
+                    # print("[*] No more results, moving to next location")
+                    break
             lead_container = page_soup.findAll(
                 'div', {'class': 'Content-ro0uyh-0 cAMAUQ result-item__content'})
         except Exception as e:

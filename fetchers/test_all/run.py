@@ -267,7 +267,7 @@ try:
                 driver, vertical, location)
             print("[*] Scraping for yp phones and urls [*]")
             new_yp_url_and_phones = yp_url_and_phone_scraper(
-                vertical, location)
+                driver, vertical, location)
             print("[*] Checking for empty lists [*]")
             number_of_empty_lists = check_for_no_results(
                 new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones)
