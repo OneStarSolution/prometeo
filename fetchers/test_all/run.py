@@ -44,6 +44,7 @@ firefox_options = Options()
 firefox_options.headless = True
 driver = webdriver.Firefox(
     executable_path="/usr/local/share/geckodriver", options=firefox_options)
+driver.set_page_load_timeout(30)
 
 
 def primary_sources_merge(dict_one, dict_two, dict_three, number_of_empty_lists):
