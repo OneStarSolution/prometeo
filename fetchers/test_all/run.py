@@ -220,7 +220,6 @@ def check_for_no_results(dict_one, dict_two, dict_three):
 
 def get_verticals_and_location_crawled():
     filenames = os.listdir("data/enhanced")
-    print("files", filenames)
 
     locations_and_verticals = set(
         [tuple(filename.split('/')[-1].split('-')[:2]) for filename in filenames])
@@ -294,7 +293,7 @@ def main():
     # Parse commands
     parser = argparse.ArgumentParser(description='Process crawl params.')
     parser.add_argument('--workers', metavar='workers', type=int, dest="workers",
-                        nargs=1, default=1, help='number of workers', required=False)
+                        default=1, help='number of workers', required=False)
     args = parser.parse_args()
 
     print(f"\nRunning with {args.workers} workers\n")
