@@ -306,14 +306,14 @@ def main():
     s = time.perf_counter()
 
     try:
-        for vertical in verticals:
-            for location in locations:
-                if (vertical, location) in verticals_and_locations_crawled:
-                    continue
-                if limit >= 200:
-                    break
-                limit += 1
-                with ProcessPoolExecutor(max_workers=args.workers) as executor:
+        with ProcessPoolExecutor(max_workers=args.workers) as executor:
+            for vertical in verticals:
+                for location in locations:
+                    if (vertical, location) in verticals_and_locations_crawled:
+                        continue
+                    if limit >= 200:
+                        break
+                    limit += 1
                     executor.submit(run, vertical, location)
 
     finally:
