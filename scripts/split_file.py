@@ -19,6 +19,8 @@ def split_file(path: str, chunks: int, chunk_to_keep: int):
     with open('zipcodes_to_crawl.csv', 'w+') as f:
         f.writelines(lines)
 
+# NOTE: Example: python scripts/split_file.py --path valid_zipcodes.csv --chunks 2 --keep 2
+
 
 if __name__ == "__main__":
     # Parse commands (1 index base for keep)

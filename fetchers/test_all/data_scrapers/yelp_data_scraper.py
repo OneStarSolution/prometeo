@@ -46,7 +46,7 @@ def yelp_data_scraper(driver, url_list, source_phone):
         # Verify
         if "not allowed to access this page" in page_soup.text.lower():
             print("exceeded request limit, change ip address to continue")
-            continue
+            break
 
         json_snippets = page_soup.findAll(
             "script", {"type": "application/ld+json"})

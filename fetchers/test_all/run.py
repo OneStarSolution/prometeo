@@ -40,11 +40,14 @@ verticals = ["hvac"]  # 'plumbing', 'restoration'
 
 locations = get_locations()
 
-firefox_options = Options()
-firefox_options.headless = True
-driver = webdriver.Firefox(
-    executable_path="/usr/local/share/geckodriver", options=firefox_options)
-driver.set_page_load_timeout(30)
+
+def create_driver():
+    firefox_options = Options()
+    firefox_options.headless = True
+    driver = webdriver.Firefox(
+        executable_path="/usr/local/share/geckodriver", options=firefox_options)
+    driver.set_page_load_timeout(30)
+    return driver
 
 
 def primary_sources_merge(dict_one, dict_two, dict_three, number_of_empty_lists):
@@ -112,7 +115,7 @@ def append_source_urls_to_lead(lead, unique_url_list):
     return lead
 
 
-def search_engine_scraper(unique_list, pages_per_search_engine):
+def search_engine_scraper(driver, unique_list, pages_per_search_engine):
     blocked_search_engine_count = 0
     list_of_enhanced_leads = []
     for lead in unique_list:
@@ -228,69 +231,72 @@ def get_verticals_and_location_crawled():
 
 
 def run(vertical, location):
-    vertical_and_location_name = vertical + '-' + location
-    file_name = vertical + '-' + location + '-phone_and_url_scrape.xlsx'
-    print(space + "\n" "Current vertical: " + vertical +
-          "\n" + "Current location: " + location + "\n" + space)
-    print("[*] Scraping for yelp urls [*]")
-    unique_yelp_url_list = yelp_url_scraper(driver, vertical, location)
-    print("[*] Scraping data from yelp urls [*]")
-    new_yelp_leads = yelp_data_scraper(
-        driver, unique_yelp_url_list, '')
-    print("[*] Saving scraped yelp data [*]")
-    dictionary_dataframe = pd.DataFrame(new_yelp_leads)
-    dictionary_dataframe.to_excel(
-        "data/yelp_data/" + vertical + "-" + location + "-yelp_data.xlsx")
-    print("Saved")
-    print("[*] Extracting phones and urls from yelp data [*]")
-    new_yelp_url_and_phones = []
-    if new_yelp_leads == []:
-        new_yelp_url_and_phones.append({})
-    else:
-        for lead in new_yelp_leads:
-            yelp_url_and_phone_dict = {}
-            phone_number = lead["phone"]
-            source_url = lead["yelp url"]
-            yelp_url_and_phone_dict["phone"] = phone_number
-            yelp_url_and_phone_dict["yelp url"] = source_url
-            new_yelp_url_and_phones.append(yelp_url_and_phone_dict)
-    print("[*] Scraping for bbb Phones and urls [*]")
-    new_bbb_url_and_phones = bbb_url_and_phone_scraper(
-        driver, vertical, location)
-    print("[*] Scraping for yp phones and urls [*]")
-    new_yp_url_and_phones = yp_url_and_phone_scraper(
-        driver, vertical, location)
-    print("[*] Checking for empty lists [*]")
-    number_of_empty_lists = check_for_no_results(
-        new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones)
-    if number_of_empty_lists == 3:
-        print("[*] No new data found for " +
-              vertical_and_location_name + " [*]")
-    else:
-        print("[*] Merging yelp, bbb and yp phones and urls [*]")
-        de_duped_lead_list = primary_sources_merge(
-            new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones,
-            number_of_empty_lists)
-        print("[*] Saving yelp, bbb and yp source phones and urls [*]")
-        dictionary_dataframe = pd.DataFrame(de_duped_lead_list)
+    driver = create_driver()
+    try:
+        vertical_and_location_name = vertical + '-' + location
+        file_name = vertical + '-' + location + '-phone_and_url_scrape.xlsx'
+        print(space + "\n" "Current vertical: " + vertical +
+              "\n" + "Current location: " + location + "\n" + space)
+        print("[*] Scraping for yelp urls [*]")
+        unique_yelp_url_list = yelp_url_scraper(driver, vertical, location)
+        print("[*] Scraping data from yelp urls [*]")
+        new_yelp_leads = yelp_data_scraper(
+            driver, unique_yelp_url_list, '')
+        print("[*] Saving scraped yelp data [*]")
+        dictionary_dataframe = pd.DataFrame(new_yelp_leads)
         dictionary_dataframe.to_excel(
-            "data/phones_urls/" + vertical + "-" + location + "-phones_and_urls.xlsx")
+            "data/yelp_data/" + vertical + "-" + location + "-yelp_data.xlsx")
         print("Saved")
-        print(
-            "[*] Passing list of scraped phone numbers through the search engines [*]")
-        print("[*] Adding enhancmenet source urls to phone numbers [*]")
-        enhanced_lead_data = search_engine_scraper(
-            de_duped_lead_list, 2)
-        print("[*] Saving enhanced phones and urls [*]")
-        dictionary_dataframe = pd.DataFrame(enhanced_lead_data)
-        dictionary_dataframe.to_excel(
-            "data/enhanced/" + vertical + "-" + location + "-phones_and_urls_enhanced.xlsx")
-        print("Saved")
-    # post_enhancement_data_scrape(enhanced_lead_data)
+        print("[*] Extracting phones and urls from yelp data [*]")
+        new_yelp_url_and_phones = []
+        if new_yelp_leads == []:
+            new_yelp_url_and_phones.append({})
+        else:
+            for lead in new_yelp_leads:
+                yelp_url_and_phone_dict = {}
+                phone_number = lead["phone"]
+                source_url = lead["yelp url"]
+                yelp_url_and_phone_dict["phone"] = phone_number
+                yelp_url_and_phone_dict["yelp url"] = source_url
+                new_yelp_url_and_phones.append(yelp_url_and_phone_dict)
+        print("[*] Scraping for bbb Phones and urls [*]")
+        new_bbb_url_and_phones = bbb_url_and_phone_scraper(
+            driver, vertical, location)
+        print("[*] Scraping for yp phones and urls [*]")
+        new_yp_url_and_phones = yp_url_and_phone_scraper(
+            driver, vertical, location)
+        print("[*] Checking for empty lists [*]")
+        number_of_empty_lists = check_for_no_results(
+            new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones)
+        if number_of_empty_lists == 3:
+            print("[*] No new data found for " +
+                  vertical_and_location_name + " [*]")
+        else:
+            print("[*] Merging yelp, bbb and yp phones and urls [*]")
+            de_duped_lead_list = primary_sources_merge(
+                new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones,
+                number_of_empty_lists)
+            print("[*] Saving yelp, bbb and yp source phones and urls [*]")
+            dictionary_dataframe = pd.DataFrame(de_duped_lead_list)
+            dictionary_dataframe.to_excel(
+                "data/phones_urls/" + vertical + "-" + location + "-phones_and_urls.xlsx")
+            print("Saved")
+            print(
+                "[*] Passing list of scraped phone numbers through the search engines [*]")
+            print("[*] Adding enhancmenet source urls to phone numbers [*]")
+            enhanced_lead_data = search_engine_scraper(
+                driver, de_duped_lead_list, 2)
+            print("[*] Saving enhanced phones and urls [*]")
+            dictionary_dataframe = pd.DataFrame(enhanced_lead_data)
+            dictionary_dataframe.to_excel(
+                "data/enhanced/" + vertical + "-" + location + "-phones_and_urls_enhanced.xlsx")
+            print("Saved")
+        # post_enhancement_data_scrape(enhanced_lead_data)
+    finally:
+        driver.close()
 
 
 def main():
-    print("herre")
     # Parse commands
     parser = argparse.ArgumentParser(description='Process crawl params.')
     parser.add_argument('--workers', metavar='workers', type=int, dest="workers",
@@ -305,19 +311,15 @@ def main():
 
     s = time.perf_counter()
 
-    try:
-        with ProcessPoolExecutor(max_workers=args.workers) as executor:
-            for vertical in verticals:
-                for location in locations:
-                    if (vertical, location) in verticals_and_locations_crawled:
-                        continue
-                    if limit >= 200:
-                        break
-                    limit += 1
-                    executor.submit(run, vertical, location)
-
-    finally:
-        driver.close()
+    with ProcessPoolExecutor(max_workers=args.workers) as executor:
+        for vertical in verticals:
+            for location in locations:
+                if (vertical, location) in verticals_and_locations_crawled:
+                    continue
+                if limit >= 200:
+                    break
+                limit += 1
+                executor.submit(run, vertical, location)
 
     e = time.perf_counter()
     print(f"Finished in {e-s}")
