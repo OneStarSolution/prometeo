@@ -22,14 +22,15 @@ from fetchers.test_all.search_engines.google_scraper import google_scraper
 
 def get_locations():
 
-    with open('valid_zipcodes.csv', 'r') as f:
-        lines = [line.replace('\n', '') for line in f.readlines()]
+    with open('zipcodes_to_crawl.csv', 'r') as f:
+        lines = [line.strip() for line in f.readlines()]
 
-    with open('CAN_city.csv', 'r') as f:
-        canada_lines = [line.replace('\n', '')[:-1]
-                        for line in f.readlines()]
+    # with open('CAN_city.csv', 'r') as f:
+    #     canada_lines = [line.replace('\n', '')[:-1]
+    #                     for line in f.readlines()]
 
-    for line in lines + canada_lines:
+    # for line in lines + canada_lines:
+    for line in lines:
         yield line
 
 
