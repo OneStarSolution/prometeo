@@ -15,21 +15,20 @@ def split_file(path: str, chunks: int, chunk_to_keep: int):
     end = chunk_to_keep * chunk_size
     start = end - chunk_size
 
-    lines = lines[start: end]
-
+    lines = map(lambda x: x+'\n', lines[start: end])
     with open('zipcodes_to_crawl.csv', 'w+') as f:
         f.writelines(lines)
 
 
 if __name__ == "__main__":
-    # Parse commands
+    # Parse commands (1 index base for keep)
     parser = argparse.ArgumentParser(description='Process crawl params.')
-    parser.add_argument('--chunks', metavar='chunks', type=int, dest="chunks",
-                        nargs=1, help='number of chunks', required=True)
-    parser.add_argument('--path', metavar='path', type=str, dest="path",
-                        nargs=1, help='path to file to split', required=True)
-    parser.add_argument('--keep', metavar='keep', type=int, dest="keep",
-                        nargs=1, help='chunk to keep', required=True)
+    parser.add_argument('--chunks', metavar='chunks', type=int,
+                        dest="chunks", help='number of chunks', required=True)
+    parser.add_argument('--path', metavar='path', type=str,
+                        dest="path", help='path to file to split', required=True)
+    parser.add_argument('--keep', metavar='keep', type=int,
+                        dest="keep", help='chunk to keep', required=True)
     args = parser.parse_args()
 
     split_file(args.path, args.chunks, args.keep)
