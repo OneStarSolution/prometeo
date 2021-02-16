@@ -1,6 +1,4 @@
 sudo git clone https://github.com/OneStarSolution/prometeo.git prometeo
-sudo unzip Archive.zip -d prometeo
-sudo mv secrets.env prometeo/config
 sudo mkdir prometeo/data
 sudo mkdir prometeo/data/enhanced
 sudo mkdir prometeo/data/phones_urls
@@ -8,6 +6,8 @@ sudo mkdir prometeo/data/yelp_data
 cd prometeo
 sudo git checkout run_quick
 bash scripts/run.sh
+sudo unzip Archive.zip -d prometeo
+sudo mv secrets.env prometeo/config
 sudo docker-compose up -d --build
 # screen
 # sudo docker exec -it prometeo_server_1 bash
