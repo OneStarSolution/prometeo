@@ -5,7 +5,7 @@ import argparse
 import pandas as pd
 from selenium import webdriver
 from bs4 import BeautifulSoup as soup
-from concurrent.futures import ProcessPoolExecutor
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from selenium.webdriver.firefox.options import Options
 
 from fetchers.test_all.utils.clean_utils import format_phone_number
@@ -235,13 +235,28 @@ def run(vertical, location):
     try:
         vertical_and_location_name = vertical + '-' + location
         file_name = vertical + '-' + location + '-phone_and_url_scrape.xlsx'
+
         print(space + "\n" "Current vertical: " + vertical +
               "\n" + "Current location: " + location + "\n" + space)
         print("[*] Scraping for yelp urls [*]")
+
         unique_yelp_url_list = yelp_url_scraper(driver, vertical, location)
+
         print("[*] Scraping data from yelp urls [*]")
-        new_yelp_leads = yelp_data_scraper(
-            driver, unique_yelp_url_list, '')
+        new_yelp_leads = []
+        chunks = [unique_yelp_url_list[:len(
+            unique_yelp_url_list)], unique_yelp_url_list[len(unique_yelp_url_list):]]
+        with ProcessPoolExecutor(max_workers=2) as executor:
+            futures = [executor.submit(
+                yelp_data_scraper, driver, chunk, '') for chunk in chunks]
+
+        for future in futures:
+            res = future.result()
+            if res:
+                new_yelp_leads.extend(res)
+
+        return
+
         print("[*] Saving scraped yelp data [*]")
         dictionary_dataframe = pd.DataFrame(new_yelp_leads)
         dictionary_dataframe.to_excel(
@@ -316,7 +331,7 @@ def main():
             for location in locations:
                 if (vertical, location) in verticals_and_locations_crawled:
                     continue
-                if limit >= 200:
+                if limit >= 2:
                     break
                 limit += 1
                 executor.submit(run, vertical, location)
