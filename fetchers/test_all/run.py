@@ -234,7 +234,6 @@ def run(vertical, location):
     driver = create_driver()
     try:
         vertical_and_location_name = vertical + '-' + location
-        file_name = vertical + '-' + location + '-phone_and_url_scrape.xlsx'
 
         print(space + "\n" "Current vertical: " + vertical +
               "\n" + "Current location: " + location + "\n" + space)
@@ -246,7 +245,8 @@ def run(vertical, location):
         new_yelp_leads = []
         chunks = [unique_yelp_url_list[:len(
             unique_yelp_url_list)], unique_yelp_url_list[len(unique_yelp_url_list):]]
-        with ProcessPoolExecutor(max_workers=2) as executor:
+
+        with ThreadPoolExecutor(max_workers=4) as executor:
             futures = [executor.submit(
                 yelp_data_scraper, driver, chunk, '') for chunk in chunks]
 
@@ -254,8 +254,6 @@ def run(vertical, location):
             res = future.result()
             if res:
                 new_yelp_leads.extend(res)
-
-        return
 
         print("[*] Saving scraped yelp data [*]")
         dictionary_dataframe = pd.DataFrame(new_yelp_leads)
@@ -274,6 +272,7 @@ def run(vertical, location):
                 yelp_url_and_phone_dict["phone"] = phone_number
                 yelp_url_and_phone_dict["yelp url"] = source_url
                 new_yelp_url_and_phones.append(yelp_url_and_phone_dict)
+
         print("[*] Scraping for bbb Phones and urls [*]")
         new_bbb_url_and_phones = bbb_url_and_phone_scraper(
             driver, vertical, location)
@@ -307,6 +306,8 @@ def run(vertical, location):
                 "data/enhanced/" + vertical + "-" + location + "-phones_and_urls_enhanced.xlsx")
             print("Saved")
         # post_enhancement_data_scrape(enhanced_lead_data)
+    except Exception as e:
+        print(e)
     finally:
         driver.close()
 
