@@ -246,14 +246,8 @@ def run(vertical, location):
         chunks = [unique_yelp_url_list[:len(
             unique_yelp_url_list)], unique_yelp_url_list[len(unique_yelp_url_list):]]
 
-        with ThreadPoolExecutor(max_workers=4) as executor:
-            futures = [executor.submit(
-                yelp_data_scraper, driver, chunk, '') for chunk in chunks]
-
-        for future in futures:
-            res = future.result()
-            if res:
-                new_yelp_leads.extend(res)
+        new_yelp_leads = yelp_data_scraper(
+            driver, unique_yelp_url_list, '')
 
         print("[*] Saving scraped yelp data [*]")
         dictionary_dataframe = pd.DataFrame(new_yelp_leads)
