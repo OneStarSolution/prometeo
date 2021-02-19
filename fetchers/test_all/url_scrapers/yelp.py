@@ -44,6 +44,7 @@ def yelp_url_scraper_test(driver, vertical, location):
         # driver.close()
         return []
 
+    repeat = set()
     for lead in lead_container:
         for link in lead.find_all('a'):
             link = link.get('href')
@@ -57,8 +58,10 @@ def yelp_url_scraper_test(driver, vertical, location):
                 status = duplicate_checker("yelp url", link)
                 if status:
                     url_list.add(link)
+                else:
+                    repeat.add(link)
 
-    result_count = len(url_list)
+    result_count = len(url_list) + len(repeat)
 
     page_urls = []
     try:
