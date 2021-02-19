@@ -234,6 +234,7 @@ def get_verticals_and_location_crawled():
 def run(vertical, location):
     driver = create_driver()
     try:
+        location = location.zfill(5) if location.isnumeric() else location
         vertical_and_location_name = vertical + '-' + location
 
         print(space + "\n" "Current vertical: " + vertical +
