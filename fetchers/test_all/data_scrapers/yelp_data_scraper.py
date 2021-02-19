@@ -7,11 +7,8 @@ from fetchers.test_all.utils.duplicate_checker import duplicate_checker
 from fetchers.test_all.utils.clean_utils import string_cleaner
 
 
-space = "*" * 75
+def yelp_data_scraper(driver, url_list, source_phone=""):
 
-
-def yelp_data_scraper(driver, url_list, source_phone):
-    print(space)
     string = False
     accepts_cc = ""
     phone_number = ""
@@ -26,11 +23,10 @@ def yelp_data_scraper(driver, url_list, source_phone):
         single_value = url_list
         string = True
         url_list = [url_list]
-        print(single_value)
 
     new_lead_dict_list = []
     for url in url_list:
-        print(space)
+
         # print(space)
         temp_snippet_list = []
         try:
@@ -77,6 +73,7 @@ def yelp_data_scraper(driver, url_list, source_phone):
             try:
                 json_block_one = json.loads(temp_snippet_list[0])
             except Exception as e:
+                print(e)
                 pass
             else:
                 try:
@@ -96,13 +93,13 @@ def yelp_data_scraper(driver, url_list, source_phone):
                 validated = True
             if source_phone == "":
                 validated = "null"
-            print("Validated: " + str(validated))
+
             new_lead_dict["validated"] = validated
             new_lead_dict["phone"] = phone_number
             try:
                 company_name = str(json_block_one.get("name"))
                 company_name = string_cleaner(company_name)
-                print("Company Name: " + company_name)
+
             except Exception as e:
                 company_name = ""
             new_lead_dict["company_name"] = company_name
@@ -110,7 +107,7 @@ def yelp_data_scraper(driver, url_list, source_phone):
                 address = json_block_one.get(
                     "address", {}).get("streetAddress")
                 address = string_cleaner(address)
-                print("address: " + address)
+
             except Exception as e:
                 address = ""
             new_lead_dict["address"] = address
@@ -118,7 +115,7 @@ def yelp_data_scraper(driver, url_list, source_phone):
                 city = str(json_block_one.get(
                     "address", {}).get("addressLocality"))
                 city = string_cleaner(city)
-                print("city: " + city)
+
             except Exception as e:
                 city = ""
             new_lead_dict["city"] = city
@@ -126,14 +123,14 @@ def yelp_data_scraper(driver, url_list, source_phone):
                 state = str(json_block_one.get(
                     "address", {}).get("addressRegion"))
                 state = string_cleaner(state)
-                print("state: " + state)
+
             except Exception as e:
                 state = ""
             new_lead_dict["state"] = state
             try:
                 zip_code = json_block_one.get("address", {}).get("postalCode")
                 zip_code = string_cleaner(zip_code)
-                print("zip_code: " + zip_code)
+
             except Exception as e:
                 zip_code = ""
             new_lead_dict["zip_code"] = zip_code
@@ -141,7 +138,7 @@ def yelp_data_scraper(driver, url_list, source_phone):
                 rating = str(json_block_one.get(
                     "aggregateRating", {}).get("ratingValue"))
                 rating = string_cleaner(rating)
-                print("Rating: " + rating)
+
             except Exception as e:
                 rating = ""
             new_lead_dict["rating"] = rating
@@ -149,7 +146,7 @@ def yelp_data_scraper(driver, url_list, source_phone):
                 review = str(json_block_one.get(
                     "aggregateRating", {}).get("reviewCount"))
                 review = string_cleaner(review)
-                print("Reviews: " + review)
+
             except Exception as e:
                 review = ""
             new_lead_dict["review"] = review
@@ -234,8 +231,7 @@ def yelp_data_scraper(driver, url_list, source_phone):
             new_lead_dict["category_one"] = category_one
             new_lead_dict["category_two"] = category_two
             new_lead_dict["category_three"] = category_three
-            print("Category one: " + category_one + "\nCategory two: " +
-                  category_two + "\nCategory three: " + category_three)
+
             try:
                 website_container = page_soup.findAll(
                     "div", {"class": "arrange__373c0__2C9bH gutter-2__373c0__1DiLQ vertical-align-middle__373c0__1SDTo border-color--default__373c0__3-ifU"})
@@ -244,7 +240,7 @@ def yelp_data_scraper(driver, url_list, source_phone):
                         website = container.find("a", {"role": "link"})
                         website = website.text.strip()
                         website = string_cleaner(website)
-                        print("Website: " + website)
+
                         break
                     else:
                         website = ""
@@ -259,11 +255,9 @@ def yelp_data_scraper(driver, url_list, source_phone):
                                                        "class": "text__373c0__2Kxyz claim-text--dark__373c0__xRoSM text-color--black-extra-light__373c0__2OyzO text-align--left__373c0__2XGa- text-weight--semibold__373c0__2l0fe text-bullet--after__373c0__3fS1Z text-size--large__373c0__3t60B"})
                     claimed = claimed_container.text.strip()
                     claimed = string_cleaner(claimed)
-                    print("Claimed status: " + claimed)
                 else:
                     claimed = claimed_container.text.strip()
                     claimed = string_cleaner(claimed)
-                    print("Claimed status: " + claimed)
             except Exception as e:
                 claimed = ""
             new_lead_dict["claimed"] = claimed
@@ -286,8 +280,7 @@ def yelp_data_scraper(driver, url_list, source_phone):
             contact_title = string_cleaner(contact_title)
             new_lead_dict["contact_name"] = contact_name
             new_lead_dict["contact_title"] = contact_title
-            print("Contact name: " + contact_name +
-                  "\nContact title: " + contact_title)
+
             try:
                 question_containers = page_soup.findAll(
                     "div", {"class": "padding-b4__373c0__uiolV border-color--default__373c0__3-ifU"})
@@ -296,7 +289,6 @@ def yelp_data_scraper(driver, url_list, source_phone):
                     if "What forms of payment are accepted" in container:
                         accepts_cc = container.split("?")[1]
                         accepts_cc = string_cleaner(accepts_cc)
-                        print("Accepts cc: " + accepts_cc)
                         break
                     else:
                         accepts_cc = ""

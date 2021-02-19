@@ -12,6 +12,7 @@ from fetchers.test_all.utils.clean_utils import format_phone_number
 from fetchers.test_all.data_scrapers.yelp_data_scraper import yelp_data_scraper
 # from fetchers.test_all.data_scrapers.bbb_data_scraper import bbb_data_scraper
 from fetchers.test_all.url_scrapers.yelp_url_scraper import yelp_url_scraper
+from fetchers.test_all.url_scrapers.yelp import yelp_url_scraper_test
 from fetchers.test_all.url_scrapers.bbb_url_and_phone_scraper import bbb_url_and_phone_scraper
 from fetchers.test_all.url_scrapers.yp_url_and_phone_scraper import yp_url_and_phone_scraper
 from fetchers.test_all.search_engines.ask_scraper import ask_scraper
@@ -239,7 +240,8 @@ def run(vertical, location):
               "\n" + "Current location: " + location + "\n" + space)
         print("[*] Scraping for yelp urls [*]")
 
-        unique_yelp_url_list = yelp_url_scraper(driver, vertical, location)
+        unique_yelp_url_list = yelp_url_scraper_test(
+            driver, vertical, location)
 
         print("[*] Scraping data from yelp urls [*]")
         new_yelp_leads = []
