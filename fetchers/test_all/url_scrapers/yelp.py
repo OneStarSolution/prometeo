@@ -55,7 +55,8 @@ def yelp_url_scraper_test(driver, vertical, location):
                 link = link.split('.com')[1]
                 link = "www.yelp.com" + link
                 # print(link)
-                status = duplicate_checker("yelp url", link)
+                status = duplicate_checker(
+                    "yelp url", link.replace('https://', ''))
                 if status:
                     url_list.add(link)
                 else:
