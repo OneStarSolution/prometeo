@@ -327,7 +327,7 @@ def main():
             for location in locations:
                 if (vertical, location) in verticals_and_locations_crawled:
                     continue
-                if limit >= 200:
+                if limit >= 1000:
                     break
                 limit += 1
                 executor.submit(run, vertical, location)
