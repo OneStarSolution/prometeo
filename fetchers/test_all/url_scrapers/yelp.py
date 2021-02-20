@@ -99,6 +99,8 @@ def yelp_url_scraper_test(driver, vertical, location):
                                 url_list.add(link)
                             else:
                                 repeat.add(link)
+            except Exception as e:
+                return url_list
 
     except Exception as e:
         print(e)
