@@ -30,7 +30,7 @@ def yelp_data_scraper(driver, url_list, source_phone=""):
         # print(space)
         temp_snippet_list = []
         try:
-            driver.get(url)
+            driver.get("https://" + url)
             # time.sleep(1.5)
             html_page = driver.page_source
             page_soup = soup(html_page, 'html.parser')
