@@ -42,7 +42,7 @@ def yelp_url_scraper_test(driver, vertical, location):
     except Exception as e:
         print(e)
         # driver.close()
-        return []
+        return url_list
 
     repeat = set()
     for lead in lead_container:
@@ -71,7 +71,7 @@ def yelp_url_scraper_test(driver, vertical, location):
         page_count_container = page_count_container.find(
             "span", {"class": "css-e81eai"})
         if not page_count_container:
-            return page_urls
+            return url_list
 
         page_count = int(page_count_container.text.strip().split()[-1])
 
@@ -79,11 +79,32 @@ def yelp_url_scraper_test(driver, vertical, location):
             page_urls.append(
                 f"https://www.yelp.com/search?find_desc={vertical}&find_loc={location}&start={page_number * result_count}")
 
+        for url in page_urls:
+            try:
+                driver.get(url)
+
+                for lead in lead_container:
+                    for link in lead.find_all('a'):
+                        link = link.get('href')
+                        link = str(link)
+                        if '/biz/' in link:
+                            link = link.replace('/biz', 'www.yelp.com/biz')
+                            link = link.split("?")[0]
+                            link = link.split('.com')[1]
+                            link = "www.yelp.com" + link
+                            # print(link)
+                            status = duplicate_checker(
+                                "yelp url", link.replace('https://', ''))
+                            if status:
+                                url_list.add(link)
+                            else:
+                                repeat.add(link)
+
     except Exception as e:
         print(e)
     finally:
         # driver.close()
-        return page_urls
+        return url_list
 
 
 # print(yelp_url_scraper_test(create_driver(), "plumbing", "91496"))
