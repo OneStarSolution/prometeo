@@ -246,8 +246,6 @@ def run(vertical, location):
 
         print("[*] Scraping data from yelp urls [*]")
         new_yelp_leads = []
-        chunks = [unique_yelp_url_list[:len(
-            unique_yelp_url_list)], unique_yelp_url_list[len(unique_yelp_url_list):]]
 
         new_yelp_leads = yelp_data_scraper(
             driver, unique_yelp_url_list, '')
