@@ -333,6 +333,7 @@ def main():
                 executor.submit(run, vertical, location)
 
     e = time.perf_counter()
+
     print(f"Finished in {e-s}")
 
 
