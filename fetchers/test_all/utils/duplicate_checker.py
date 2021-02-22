@@ -48,11 +48,12 @@ def duplicate_checker(source, data_point):
                 unique_status = False
             else:
                 # query th HC API
-                api_endpoinT = f"https://mfe7wxd6q0.execute-api.us-west-2.amazonaws.com/dev?phone_number={data_point}"
-                api_key = "wDFncJwyDX4HXHD7w0vBQ7cRADAD24jz4KiUCvhS"
-                headers = {'x-api-key': api_key}
-                response = requests.get(url=api_endpoinT, headers=headers).text
-                unique_status = False if "salesforce_lead_id" in response else True
+                # api_endpoinT = f"https://mfe7wxd6q0.execute-api.us-west-2.amazonaws.com/dev?phone_number={data_point}"
+                # api_key = "wDFncJwyDX4HXHD7w0vBQ7cRADAD24jz4KiUCvhS"
+                # headers = {'x-api-key': api_key}
+                # response = requests.get(url=api_endpoinT, headers=headers).text
+                # unique_status = False if "salesforce_lead_id" in response else True
+                unique_status = True
         except Exception as e:
             print(e)
             unique_status = False
