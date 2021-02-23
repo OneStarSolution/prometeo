@@ -18,10 +18,10 @@ class MantaDataScrape:
         "reviews_container": "reviewsContent",
     }
 
-    def __init__(self):
-        html = ""
-        with open("manta.html", "r") as f:
-            html = f.read()
+    def __init__(self, html: str = None):
+        if not html:
+            with open("manta.html", "r") as f:
+                html = f.read()
 
         self.soup = BeautifulSoup(html, features="html.parser")
         self.summary = {}
@@ -145,17 +145,17 @@ class MantaDataScrape:
             "id": self.IDS.get("reviews_container")}).text).group(1))
 
 
-_max = 0
-_min = 1000
-_sum = 0
-n = 100
-m = MantaDataScrape()
-for i in range(n):
-    s = time.perf_counter()
-    m.parse()
-    e = time.perf_counter()
-    res = e-s
-    _max = max(res, _max)
-    _min = min(res, _min)
-    _sum += res
-print(f"Max: {_max} Min: {_min} Avg: {_sum/n}")
+# _max = 0
+# _min = 1000
+# _sum = 0
+# n = 100
+# m = MantaDataScrape()
+# for i in range(n):
+#     s = time.perf_counter()
+#     m.parse()
+#     e = time.perf_counter()
+#     res = e-s
+#     _max = max(res, _max)
+#     _min = min(res, _min)
+#     _sum += res
+# print(f"Max: {_max} Min: {_min} Avg: {_sum/n}")

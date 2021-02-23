@@ -15,7 +15,9 @@ class MantaFetcherController:
         self.url_base = url
 
     def _read_web(self):
-        self.driver.get(self.url_base)
+        print("getting")
+        self.driver.get("https://www.google.com/")
+        print("goot")
         return self.driver.page_source
 
     def __del__(self):
