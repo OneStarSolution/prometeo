@@ -11,5 +11,9 @@ for url in urls[:2]:
     if html:
         print("creating doc")
         doc = MantaDataScrape(html)
-        doc.parse()
-        print(doc.summary)
+
+        if doc.verify():
+            doc.parse()
+            print(doc.summary)
+        else:
+            print(f"nott verified {url}")
