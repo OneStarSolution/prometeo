@@ -84,7 +84,9 @@ def connect_to_new_server(status):
     if "disco" in status.lower():
         connect_to_new_server = False
         while connect_to_new_server is False:
+            print("finding a server")
             country_and_name = generate_random_server(20000)
+            print("ttry to connect", country_and_name)
             nordvpn_output = send_command('connect', country_and_name)
             if 'hoops!' in nordvpn_output:
                 save_bad_servers(country_and_name)
@@ -98,4 +100,5 @@ def connect_to_new_server(status):
 
 if __name__ == '__main__':
     status = send_command()
+    print("status", status)
     connect_to_new_server(status)
