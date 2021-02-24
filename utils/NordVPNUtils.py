@@ -43,11 +43,12 @@ def check_used_servers(server):
 def generate_random_server(max_server_number=9000):
     used_server = True
     while used_server is True:
-        random_number = random.randint(100, max_server_number)
+        random_number = random.randint(8500, max_server_number)
         if random_number < 1000:
             country_and_name = "ca" + str(random_number)
         else:
             country_and_name = "us" + str(random_number)
+        print(f"ttrying {server}")
         server = country_and_name
         used_server = check_used_servers(server)
     return server
