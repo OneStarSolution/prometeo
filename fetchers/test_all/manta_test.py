@@ -16,4 +16,6 @@ for url in urls[:2]:
             doc.parse()
             print(doc.summary)
         else:
+            with open("html.html", "w+") as f:
+                f.write(html)
             print(f"nott verified {url}")
