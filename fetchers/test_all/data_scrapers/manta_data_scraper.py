@@ -41,6 +41,8 @@ class MantaDataScrape:
                 "div", {"id": self.IDS.get(container_id)})
             containers_found.append(container)
 
+        print(containers_found)
+
         return all(containers_found)
 
     def parse(self):
