@@ -1,3 +1,5 @@
+import time
+
 from pydantic import HttpUrl
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
@@ -17,6 +19,7 @@ class MantaFetcherController:
     def _read_web(self):
         print("getting")
         self.driver.get("https://www.google.com/")
+        time.sleep(20)
         print("goot")
         return self.driver.page_source
 
