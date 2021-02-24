@@ -51,7 +51,7 @@ def generate_random_server(max_server_number=9000):
     #     print(f"ttrying {server}")
     #     server = country_and_name
     #     used_server = check_used_servers(server)
-    return "us5326"
+    return "us5610"
 
 
 def save_used_servers(used_server):
@@ -88,6 +88,7 @@ def connect_to_new_server(status):
             country_and_name = generate_random_server(20000)
             print("ttry to connect", country_and_name)
             nordvpn_output = send_command('connect', country_and_name)
+            print("out", nordvpn_output)
             if 'hoops!' in nordvpn_output:
                 save_bad_servers(country_and_name)
             if 'You are connected' in nordvpn_output:
