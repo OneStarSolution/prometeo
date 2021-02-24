@@ -32,6 +32,7 @@ class MantaDataScrape:
         ask_captcha_text = "please complete the security check to access"
 
         if ask_captcha_container and ask_captcha_text in ask_captcha_container:
+            print("Ask for captcha")
             return False
 
         containers_found = []
