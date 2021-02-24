@@ -97,3 +97,4 @@ def connect_to_new_server(status):
 
 if __name__ == '__main__':
     print(send_command())
+    connect_to_new_server()
