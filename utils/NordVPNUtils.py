@@ -93,3 +93,7 @@ def connect_to_new_server(status):
                 connect_to_new_server = True
     else:
         print("You are already connected to a server!......")
+
+
+if __name__ == '__main__':
+    print(send_command())
