@@ -80,7 +80,7 @@ def save_bad_servers(bad_server):
 
 
 def connect_to_new_server(status):
-    if "disco" in status:
+    if "disco" in status.lower():
         connect_to_new_server = False
         while connect_to_new_server is False:
             country_and_name = generate_random_server(20000)
