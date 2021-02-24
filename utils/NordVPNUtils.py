@@ -100,6 +100,7 @@ def connect_to_new_server(status):
 
 
 if __name__ == '__main__':
+    send_command("login")
     status = send_command()
     print("status", status)
     connect_to_new_server(status)
