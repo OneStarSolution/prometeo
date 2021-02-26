@@ -4,9 +4,6 @@ sudo apt update
 
 sudo apt install -y nano git screen unzip zip
 
-# Install nordvpn
-sh <(curl -sSf https://downloads.nordcdn.com/apps/linux/install.sh) -y
-
 # Docker installation and use as sudo
 
 sudo apt install -y apt-transport-https ca-certificates curl software-properties-common
