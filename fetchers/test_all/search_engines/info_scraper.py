@@ -15,14 +15,19 @@ def info_scraper(driver, phone_number, pages_per_search_engine):
             translated_phone + '&page=' + str(i)
 
         try:
-            driver.get(search_url)
+            try:
+                driver.get(search_url)
+            except Exception as e:
+                print(e)
+                return [], blocked
             html_page = driver.page_source
             page_soup = soup(html_page, 'html.parser')
             no_result_container = page_soup.find(
                 "div", {"class": "notice-noresults-empty"})
-            no_result_container = no_result_container.text.strip()
-            if 'No search results' in no_result_container:
-                break
+            if no_result_container:
+                no_result_container = no_result_container.text.strip()
+                if 'No search results' in no_result_container:
+                    break
             html_string = (str(page_soup))
             html_string = html_string.split("</head>")[1]
             page_soup = soup(html_string, 'html.parser')

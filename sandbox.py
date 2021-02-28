@@ -23,6 +23,7 @@ def YELPController_run_sample(url):
         f = YELPFetcherController(url)
         html = f._read_web()
 
+        print("semi parsing")
         d = YELPFetcherDocument(url)
         d.setData(html)
 
@@ -229,4 +230,7 @@ def attach_phones():
 # print(YELPClientController().fetch(category, location))
 
 
-run_bbb_parallel()
+# run_bbb_parallel()
+
+print(YELPController_run_sample(
+    "https://www.yelp.com/biz/j-and-m-construction-services-dover"))
