@@ -6,7 +6,7 @@ from fastapi import APIRouter
 router = APIRouter()
 
 
-def count_files(pattern, base_path="data/enhanced"):
+def count_files(pattern: str, base_path="data/enhanced"):
     regex = re.compile(pattern)
     count = 0
     for root, dirs, files in os.walk(base_path):

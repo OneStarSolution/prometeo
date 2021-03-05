@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from webservice.routes.enhanced import router as EnhancedRouter
+from routes.enhanced import router as EnhancedRouter
 
 
 app = FastAPI()
