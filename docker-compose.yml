@@ -4,7 +4,7 @@ services:
   server:
     build: ./
     # for future process
-    # command: python app/main.py
+    command: python app/main.py
     volumes:
       - ./:/app
     ports:

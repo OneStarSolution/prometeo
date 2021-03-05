@@ -4,9 +4,11 @@ beautifulsoup4==4.9.3
 certifi==2020.12.5
 chardet==3.0.4
 dnspython
+fastapi
 idna==2.10
 importlib-metadata==3.1.1
 iniconfig==1.1.1
+nordvpn-switcher==0.2.5
 numpy==1.19.4
 packaging==20.7
 pandas==1.1.5
