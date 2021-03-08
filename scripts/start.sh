@@ -1,3 +1,2 @@
-screen -q -d -S crawl
-cd prometeo
-screen -S crawl -X sudo git pull && sudo docker-compose up -d --build && sudo docker exec -it prometeo_server_1 bash scripts/run_crawl.sh
+screen -S crawl -q
+screen -S crawl -X cd prometeo && sudo git pull && sudo docker-compose up -d --build && sudo docker exec -it prometeo_server_1 bash scripts/run_crawl.sh
