@@ -1,0 +1,1 @@
+python3 fetchers/test_all/run.py --workers 3
