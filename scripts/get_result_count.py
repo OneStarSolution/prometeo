@@ -12,14 +12,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
     results = {}
 
-    for i in range(1, 20):
-        instance_name = f'CE_INSTANCE_{i}'
-        host = os.getenv(instance_name)
-        url = "http://{host}:8000/enhanced"
-        params = {"pattern": args.pattern}
-        res = requests.get(url, params=params)
-        results[instance_name] = res.json()
+    for i in range(1, 21):
+        try:
+            instance_name = f'CE_INSTANCE_{i}'
+            host = os.getenv(instance_name)
+            url = f"http://{host}:8000/enhanced"
+            print(f"Querying: {instance_name} - {url}")
+            params = {"pattern": args.pattern}
+            res = requests.get(url, params=params, timeout=5)
+            results[instance_name] = res.json()
+        except Exception as e:
+            print(e)
 
     # Print results
     for gcp_machine, files_found in results.items():
-        print(f"{gcp_machine} -> {files_found} ({files_found//2050})%")
+        print(f"{gcp_machine} -> {files_found} ({(files_found/2050*100):.2f})%")
