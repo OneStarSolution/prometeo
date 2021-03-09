@@ -37,7 +37,8 @@ def get_locations():
 
 space = "*" * 75
 
-verticals = ["hvac", "electrician"]  # 'plumbing', 'restoration'
+verticals = [" heating and air conditioning",
+             "electrician"]  # 'plumbing', 'restoration'
 
 locations = get_locations()
 
@@ -289,7 +290,7 @@ def run(vertical, location):
             print("[*] Saving yelp, bbb and yp source phones and urls [*]")
             dictionary_dataframe = pd.DataFrame(de_duped_lead_list)
             dictionary_dataframe.to_excel(
-                "data/phones_urls/" + vertical + "-" + location + "-phones_and_urls.xlsx")
+                "data/phones_urls/" + vertical.replace(" ", "_") + "-" + location + "-phones_and_urls.xlsx")
             print("Saved")
             print(
                 "[*] Passing list of scraped phone numbers through the search engines [*]")
@@ -299,7 +300,7 @@ def run(vertical, location):
             print("[*] Saving enhanced phones and urls [*]")
             dictionary_dataframe = pd.DataFrame(enhanced_lead_data)
             dictionary_dataframe.to_excel(
-                "data/enhanced/" + vertical + "-" + location + "-phones_and_urls_enhanced.xlsx")
+                "data/enhanced/" + vertical.replace(" ", "_") + "-" + location + "-phones_and_urls_enhanced.xlsx")
             print("Saved")
         # post_enhancement_data_scrape(enhanced_lead_data)
     except Exception as e:
