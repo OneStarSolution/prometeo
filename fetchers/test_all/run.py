@@ -37,7 +37,7 @@ def get_locations():
 
 space = "*" * 75
 
-verticals = ["electrician", "hvac"]  # 'plumbing', 'restoration'
+verticals = ["hvac", "electrician"]  # 'plumbing', 'restoration'
 
 locations = get_locations()
 
