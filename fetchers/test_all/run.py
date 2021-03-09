@@ -53,7 +53,7 @@ def create_driver():
 
 def primary_sources_merge(dict_one, dict_two, dict_three, number_of_empty_lists):
     de_duped_lead_list = []
-    unique_phone_list = []
+    unique_phone_list = set()
     all_results = dict_one + dict_two + dict_three
     all_results = [elem for elem in all_results if elem]
 
@@ -62,16 +62,17 @@ def primary_sources_merge(dict_one, dict_two, dict_three, number_of_empty_lists)
         if phone_number in unique_phone_list:
             pass
         else:
-            unique_phone_list.append(phone_number)
-    print(all_results)
+            unique_phone_list.add(phone_number)
+
     for phone in unique_phone_list:
         unique_lead = {}
         for result in all_results:
             if phone == result.get("phone"):
-                url_key = list(result.keys())[1]
+                url_key = [key for key in result.keys() if key != "phone"][0]
                 unique_lead["phone"] = phone
-                unique_lead[url_key] = list(result.values())[1]
+                unique_lead[url_key] = result.get(url_key)
         de_duped_lead_list.append(unique_lead)
+
     return de_duped_lead_list
 
 
