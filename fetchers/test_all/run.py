@@ -327,7 +327,7 @@ def main():
     with ProcessPoolExecutor(max_workers=args.workers) as executor:
         for vertical in verticals:
             for location in locations:
-                if (vertical, location) in verticals_and_locations_crawled:
+                if (vertical.replace(" ", "_"), location) in verticals_and_locations_crawled:
                     continue
                 if limit >= 2500:
                     break
