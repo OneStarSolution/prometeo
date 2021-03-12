@@ -13,17 +13,3 @@ for instance_name in ${instance_names[@]}; do
     # python3 fetchers/test_all/run.py --workers 3
     echo "ending" 
 done
-
-instance_names=("replaceof1" "replaceof2")
-
-for instance_name in ${instance_names[@]}; do
-    echo $instance_name
-    # Connect using SSH
-    gcloud compute ssh --project=directed-pier-294505 --zone=us-central1-a $instance_name --command="cd prometeo/ && sudo git pull && cd .. && bash prometeo/scripts/start.sh"
-    # # Create a screen
-    # screen
-    # # Build containers
-    # cd prometeo && sudo git pull && sudo docker-compose up -d --build && sudo docker exec -it prometeo_server_1 bash
-    # python3 fetchers/test_all/run.py --workers 3
-    echo "ending" 
-done
