@@ -9,6 +9,8 @@ class MantaDataScrape:
     CLASSES = {
         "ask_captcha_container": "cf-subheadline",
         "location_list": "text-gray-dark",
+        "categories_a": "hover:underline",
+        "categories_container": "text-gray-400 text-sm py-3 hidden lg:block"
     }
 
     IDS = {
@@ -16,6 +18,7 @@ class MantaDataScrape:
         "contact_container": "contactContent",
         "datails_container": "detailsContent",
         "reviews_container": "reviewsContent",
+        "start_of_content": "start-of-content",
     }
 
     def __init__(self, html: str = None):
@@ -55,6 +58,7 @@ class MantaDataScrape:
         self.summary["employees"] = self.get_employees()
         self.summary["contacts"] = self.get_contacts()
         self.summary["reviews"] = self.get_reviews()
+        self.summary["categories"] = self.get_categories()
 
     def get_name(self) -> str:
         return self.soup.find("div", {
@@ -70,18 +74,18 @@ class MantaDataScrape:
             "id": self.IDS.get("contact_container")}).find('ul', {
                 "class": self.CLASSES.get("location_list")}).find_all("li")
 
-        if not location_list or len(location_list) != 3:
-            print("Location list is different from what we")
+        if not location_list or len(location_list) < 2:
+            print("Location list is different from what we expect")
             return location
 
-        city, state, zipcode = location_list[2].text.strip().replace(
+        city, state, zipcode = location_list[-1].text.strip().replace(
             ",", "").split()
 
         location = {
-            "street": location_list[1].text,
-            'state': state,
-            'zipcode': zipcode,
-            "city": city,
+            "street": location_list[1].text.strip() if len(location_list) == 3 else "",
+            'state': state.strip(),
+            'zipcode': zipcode.strip(),
+            "city": city.strip(),
         }
 
         return location
@@ -100,9 +104,11 @@ class MantaDataScrape:
         href = ""
         if i:
             href = i[0].parent["href"]
-            href = re.search(r"(www.*)", href).group(1).split("&")[0]
+            href = re.search(r"(www.*)", href)
+            if href:
+                href = href.group(1).split("&")[0]
 
-        return href
+        return href or ''
 
     def get_years_from_established(self):
         established = int(self.soup.find("div", {
@@ -147,6 +153,23 @@ class MantaDataScrape:
         return int(re.search(r"\((.*)\)", self.soup.find("div", {
             "id": self.IDS.get("reviews_container")}).text).group(1))
 
+    def get_categories(self):
+        categories = []
+        container = self.soup.find(
+            "div", {"class": self.CLASSES.get("categories_container")})
+
+        if not container:
+            return categories
+
+        a_tags = container.find_all(
+            "a", {"class": self.CLASSES.get("categories_a")})
+
+        for a_tag in a_tags[-2:]:
+            text = a_tag.text.strip()
+            categories.append(text)
+
+        return categories
+
 
 # _max = 0
 # _min = 1000
@@ -162,3 +185,12 @@ class MantaDataScrape:
 #     _min = min(res, _min)
 #     _sum += res
 # print(f"Max: {_max} Min: {_min} Avg: {_sum/n}")
+# https://www.manta.com/c/mm4m236/active-plumbing-and-drain-cleaning
+with open("manta.html", "r") as f:
+    html = f.read()
+m = MantaDataScrape(html)
+s = time.perf_counter()
+m.parse()
+e = time.perf_counter()
+print(m.summary)
+print(e-s)
