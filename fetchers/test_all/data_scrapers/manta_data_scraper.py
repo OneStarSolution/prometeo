@@ -186,11 +186,11 @@ class MantaDataScrape:
 #     _sum += res
 # print(f"Max: {_max} Min: {_min} Avg: {_sum/n}")
 # https://www.manta.com/c/mm4m236/active-plumbing-and-drain-cleaning
-with open("manta.html", "r") as f:
-    html = f.read()
-m = MantaDataScrape(html)
-s = time.perf_counter()
-m.parse()
-e = time.perf_counter()
-print(m.summary)
-print(e-s)
+# with open("manta.html", "r") as f:
+#     html = f.read()
+# m = MantaDataScrape(html)
+# s = time.perf_counter()
+# m.parse()
+# e = time.perf_counter()
+# print(m.summary)
+# print(e-s)
