@@ -20,7 +20,7 @@ if __name__ == "__main__":
     parser.add_argument('--pattern', '-p', metavar='pattern', type=str, dest="pattern",
                         default=1, help='regex', required=True)
     args = parser.parse_args()
-    results = {}
+    results = []
 
     for i in range(1, 21):
         try:
@@ -30,8 +30,18 @@ if __name__ == "__main__":
             print(f"Querying: {instance_name} - {url}")
             params = {"pattern": args.pattern}
             res = requests.get(url, params=params, timeout=5)
-            results[instance_name] = res.json()
+            results.extend(res.json())
         except Exception as e:
             print(e)
 
-    print(results)
+    # read all the zipcodes
+    with open('valid_zipcodes.csv', 'r') as f:
+        zipcodes = set([line.replace('\n', '').zfill(5)
+                        for line in f.readlines()])
+
+    zipcodes_crawled = set([zipcode.split('-')[1].strip().zfill(5)
+                            for zipcode in results])
+
+    not_crawled_yet = zipcodes.difference(zipcodes_crawled)
+
+    print(len(not_crawled_yet))

@@ -5,7 +5,7 @@ instance_names=("instance-team-1-2j48" "instance-team-1-3ph2" "instance-team-1-9
 for instance_name in ${instance_names[@]}; do
     echo $instance_name
     # Connect using SSH
-    gcloud compute ssh --project=directed-pier-294505 --zone=us-west2-a $instance_name --command="ls prometeo/data/enhanced | grep electrician | wc -l"
+    gcloud compute ssh --project=directed-pier-294505 --zone=us-west2-a $instance_name --command="ls prometeo/data/enhanced | grep hea | wc -l"
     # # Create a screen
     # screen
     # # Build containers
@@ -13,16 +13,3 @@ for instance_name in ${instance_names[@]}; do
     # python3 fetchers/test_all/run.py --workers 3
 done
 
-instance_names=("replaceof1" "replaceof2")
-
-for instance_name in ${instance_names[@]}; do
-    echo $instance_name
-    # Connect using SSH
-    gcloud compute ssh --project=directed-pier-294505 --zone=us-central1-a $instance_name --command="ls prometeo/data/enhanced | grep electrician | wc -l"
-    # # Create a screen
-    # screen
-    # # Build containers
-    # cd prometeo && sudo git pull && sudo docker-compose up -d --build && sudo docker exec -it prometeo_server_1 bash
-    # python3 fetchers/test_all/run.py --workers 3
-    echo "ending" 
-done

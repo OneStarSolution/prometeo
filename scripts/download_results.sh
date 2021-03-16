@@ -9,4 +9,5 @@ for instance_name in ${instance_names[@]}; do
 done
 
 zip -r $PWD/data/download/all_machines.zip $PWD/data/download/
+# Delete all the zip downloaded and keep all
 rm -rf $PWD/data/download/instance*
