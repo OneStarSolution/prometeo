@@ -40,7 +40,7 @@ space = "*" * 75
 # 'plumbing', 'restoration'
 verticals = ["electrician"]
 
-locations = ["80019"
+locations = ["80019",
 "80014",
 "06716",
 "80041",
