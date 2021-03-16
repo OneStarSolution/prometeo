@@ -13,7 +13,7 @@ def yp_url_and_phone_scraper(driver, vertical, location):
                  "vertical": "plumbing",
                  "mid_string": "&geo_location_terms=",
                  "location": "85033", "end_string": "&page=", "page": "1"}
-    for page in range(1, 16):  # set to 99, changed to 5 for testing purposes
+    for page in range(1, 100):  # set to 99, changed to 5 for testing purposes
         yp_url = yp_domain["domain"] + vertical + yp_domain["mid_string"] + \
             location + yp_domain["end_string"] + str(page)
 
