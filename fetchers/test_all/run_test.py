@@ -40,8 +40,16 @@ space = "*" * 75
 # 'plumbing', 'restoration'
 verticals = ["garage door repair"]
 
-locations = ["80019", "80014", "06716", "80041",
-             "07885", "32792", "35228", "44108", "78237", "90810"]
+locations = ["80019",
+             "80014",
+             "06716",
+             "80041",
+             "07885",
+             "32792",
+             "35228",
+             "44108",
+             "78237",
+             "90810", ]
 
 
 def create_driver():
@@ -227,7 +235,7 @@ def check_for_no_results(dict_one, dict_two, dict_three):
 
 
 def get_verticals_and_location_crawled():
-    filenames = os.listdir("data/enhanced")
+    filenames = os.listdir("data/test/enhanced")
 
     locations_and_verticals = set(
         [tuple(filename.split('/')[-1].split('-')[:2]) for filename in filenames])
@@ -240,8 +248,8 @@ def run(vertical, location):
         location = location.zfill(5) if location.isnumeric() else location
         vertical_and_location_name = vertical + '-' + location
 
-        print(space + "\n" "Current vertical: " + vertical +
-              "\n" + "Current location: " + location + "\n" + space)
+        # print(space + "\n" "Current vertical: " + vertical +
+        #       "\n" + "Current location: " + location + "\n" + space)
         # print("[*] Scraping for yelp urls [*]")
 
         # unique_yelp_url_list = yelp_url_scraper_test(
@@ -256,7 +264,7 @@ def run(vertical, location):
         # print("[*] Saving scraped yelp data [*]")
         # dictionary_dataframe = pd.DataFrame(new_yelp_leads)
         # dictionary_dataframe.to_excel(
-        #     "data/yelp_data/" + vertical + "-" + location + "-yelp_data.xlsx")
+        #     "data/test/yelp_data/" + vertical + "-" + location + "-yelp_data.xlsx")
         # print("Saved")
         # print("[*] Extracting phones and urls from yelp data [*]")
         # new_yelp_url_and_phones = []
@@ -271,6 +279,7 @@ def run(vertical, location):
         #         yelp_url_and_phone_dict["yelp url"] = source_url
         #         new_yelp_url_and_phones.append(yelp_url_and_phone_dict)
 
+        new_yelp_url_and_phones = []
         print("[*] Scraping for bbb Phones and urls [*]")
         new_bbb_url_and_phones = bbb_url_and_phone_scraper(
             driver, vertical, location)
@@ -278,8 +287,6 @@ def run(vertical, location):
         new_yp_url_and_phones = yp_url_and_phone_scraper(
             driver, vertical, location)
         print("[*] Checking for empty lists [*]")
-        # comment when you want to run yelp
-        new_yelp_url_and_phones = []
         number_of_empty_lists = check_for_no_results(
             new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones)
         if number_of_empty_lists == 3:
@@ -293,7 +300,7 @@ def run(vertical, location):
             print("[*] Saving yelp, bbb and yp source phones and urls [*]")
             dictionary_dataframe = pd.DataFrame(de_duped_lead_list)
             dictionary_dataframe.to_excel(
-                "data/phones_urls/" + vertical.replace(" ", "_") + "-" + location + "-phones_and_urls.xlsx")
+                "data/test/phones_urls/" + vertical.replace(" ", "_") + "-" + location + "-phones_and_urls.xlsx")
             print("Saved")
             print(
                 "[*] Passing list of scraped phone numbers through the search engines [*]")
@@ -303,7 +310,7 @@ def run(vertical, location):
             print("[*] Saving enhanced phones and urls [*]")
             dictionary_dataframe = pd.DataFrame(enhanced_lead_data)
             dictionary_dataframe.to_excel(
-                "data/enhanced/" + vertical.replace(" ", "_") + "-" + location + "-phones_and_urls_enhanced.xlsx")
+                "data/test/enhanced/" + vertical.replace(" ", "_") + "-" + location + "-phones_and_urls_enhanced.xlsx")
             print("Saved")
         # post_enhancement_data_scrape(enhanced_lead_data)
     except Exception as e:
