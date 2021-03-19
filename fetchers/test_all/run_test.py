@@ -270,7 +270,7 @@ def run(vertical, location):
         #         yelp_url_and_phone_dict["yelp url"] = source_url
         #         new_yelp_url_and_phones.append(yelp_url_and_phone_dict)
 
-        new_yelp_url_and_phones = []
+        new_yelp_url_and_phones = [{}]
         print("[*] Scraping for bbb Phones and urls [*]")
         new_bbb_url_and_phones = bbb_url_and_phone_scraper(
             driver, vertical, location)
