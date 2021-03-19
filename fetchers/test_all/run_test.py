@@ -40,16 +40,7 @@ space = "*" * 75
 # 'plumbing', 'restoration'
 verticals = ["garage door repair"]
 
-locations = ["80019",
-             "80014",
-             "06716",
-             "80041",
-             "07885",
-             "32792",
-             "35228",
-             "44108",
-             "78237",
-             "90810", ]
+locations = ["80019"]
 
 
 def create_driver():
