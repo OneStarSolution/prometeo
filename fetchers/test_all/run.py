@@ -278,7 +278,7 @@ def run(vertical, location):
             driver, vertical, location)
         print("[*] Checking for empty lists [*]")
         # comment when you want to run yelp
-        new_yelp_url_and_phones = []
+        new_yelp_url_and_phones = [{}]
         number_of_empty_lists = check_for_no_results(
             new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones)
         if number_of_empty_lists == 3:
