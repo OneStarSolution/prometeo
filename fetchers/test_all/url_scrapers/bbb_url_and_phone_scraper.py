@@ -19,7 +19,7 @@ def bbb_url_and_phone_scraper(driver, vertical, location):
                   "country": "USA", "mid_string": "&find_loc=",
                   "location": "85033", "mid_string_2": "&find_text=",
                   "vertical": "plumbing", "end_string": "&page=", "page": "1"}
-    for page in range(1, 2):  # Default value is 17
+    for page in range(1, 50):  # Default value is 17
         bbb_url = bbb_domain["domain"] + country + bbb_domain["mid_string"] + location + \
             bbb_domain["mid_string_2"] + vertical + \
             bbb_domain["end_string"] + str(page)
