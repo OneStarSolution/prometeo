@@ -19,7 +19,7 @@ def bbb_url_and_phone_scraper(driver, vertical, location):
                   "country": "USA", "mid_string": "&find_loc=",
                   "location": "85033", "mid_string_2": "&find_text=",
                   "vertical": "plumbing", "end_string": "&page=", "page": "1"}
-    for page in range(1, 50):  # Default value is 17
+    for page in range(1, 2):  # Default value is 17
         bbb_url = bbb_domain["domain"] + country + bbb_domain["mid_string"] + location + \
             bbb_domain["mid_string_2"] + vertical + \
             bbb_domain["end_string"] + str(page)
@@ -38,6 +38,21 @@ def bbb_url_and_phone_scraper(driver, vertical, location):
                     pass
                 else:
                     already_clicked = True
+
+                if not already_clicked:
+                    try:
+                        time.sleep(1.5)
+                        xp = "/html/body/div[4]/div[3]/div/form/div[2]/fieldset/div[1]/label[2]/div/span/span[1]/input"
+                        elem = driver.find_element_by_xpath(xp)
+                        if elem:
+                            elem.click()
+                            time.sleep(1)
+                    except Exception as e:
+                        print(e)
+                        pass
+                    else:
+                        already_clicked = True
+
             html_page = driver.page_source
             page_soup = soup(html_page, 'html.parser')
 
@@ -47,13 +62,13 @@ def bbb_url_and_phone_scraper(driver, vertical, location):
             if no_result_container:
                 no_result = no_result_container.text.strip()
                 if "sorry, we found no results" in no_result:
-                    # print("[*] No more results, moving to next location")
+                    print("[*] No more results, moving to next location")
                     break
                 if "Sin resultado" in no_result:
-                    # print("[*] No more results, moving to next location")
+                    print("[*] No more results, moving to next location")
                     break
             lead_container = page_soup.findAll(
-                'div', {'class': 'Content-ro0uyh-0 cAMAUQ result-item__content'})
+                'div', {'class': 'Content-ro0uyh-0 VyFaZ rresult-item-ab__content'})
         except Exception as e:
             print(e)
             continue
