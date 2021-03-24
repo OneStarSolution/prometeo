@@ -40,16 +40,7 @@ space = "*" * 75
 # 'plumbing', 'restoration'
 verticals = ["garage door repair"]
 
-locations = ["80019",
-             "80014",
-             "06716",
-             "80041",
-             "07885",
-             "32792",
-             "35228",
-             "44108",
-             "78237",
-             "90810", ]
+locations = ["80014", ]
 
 
 def create_driver():
@@ -283,6 +274,12 @@ def run(vertical, location):
         print("[*] Scraping for bbb Phones and urls [*]")
         new_bbb_url_and_phones = bbb_url_and_phone_scraper(
             driver, vertical, location)
+        if new_bbb_url_and_phones:
+            try:
+                pd.DataFrame(new_bbb_url_and_phones).to_csv(
+                    "data/test/bbb_results_{location}.csv")
+            except Exception as e:
+                print(e)
         print("[*] Scraping for yp phones and urls [*]")
         new_yp_url_and_phones = yp_url_and_phone_scraper(
             driver, vertical, location)
