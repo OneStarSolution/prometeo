@@ -38,7 +38,7 @@ def get_locations():
 
     # for line in lines + canada_lines:
     for line in redistribution:
-        yield line
+        yield line.strip().replace('\n', '').replace('$', '')
 
 
 space = "*" * 75
