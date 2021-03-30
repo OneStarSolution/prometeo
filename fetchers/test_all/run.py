@@ -23,13 +23,13 @@ from fetchers.test_all.search_engines.google_scraper import google_scraper
 
 def get_locations():
 
-    with open('zipcodes_to_crawl.csv', 'r') as f:
-        lines = [line.strip() for line in f.readlines()]
+    # with open('zipcodes_to_crawl.csv', 'r') as f:
+    #     lines = [line.strip() for line in f.readlines()]
 
     redistribution = []
-    if os.path.isfile('redistribution.csv'):
+    if os.path.isfile('redistribution.txt'):
         print("reading redistribution")
-        with open("redistribution.csv") as f:
+        with open("redistribution.txt") as f:
             redistribution = f.readlines()
 
     # with open('CAN_city.csv', 'r') as f:
