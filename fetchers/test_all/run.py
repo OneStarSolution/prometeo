@@ -37,7 +37,7 @@ def get_locations():
     #                     for line in f.readlines()]
 
     # for line in lines + canada_lines:
-    for line in lines + redistribution:
+    for line in redistribution:
         yield line
 
 
