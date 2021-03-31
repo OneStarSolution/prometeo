@@ -247,34 +247,34 @@ def run(vertical, location):
 
         print(space + "\n" "Current vertical: " + vertical +
               "\n" + "Current location: " + location + "\n" + space)
-        # print("[*] Scraping for yelp urls [*]")
+        print("[*] Scraping for yelp urls [*]")
 
-        # unique_yelp_url_list = yelp_url_scraper_test(
-        #     driver, vertical, location)
+        unique_yelp_url_list = yelp_url_scraper_test(
+            driver, vertical, location)
 
-        # print("[*] Scraping data from yelp urls [*]")
-        # new_yelp_leads = []
+        print("[*] Scraping data from yelp urls [*]")
+        new_yelp_leads = []
 
-        # new_yelp_leads = yelp_data_scraper(
-        #     driver, unique_yelp_url_list, '')
+        new_yelp_leads = yelp_data_scraper(
+            driver, unique_yelp_url_list, '')
 
-        # print("[*] Saving scraped yelp data [*]")
-        # dictionary_dataframe = pd.DataFrame(new_yelp_leads)
-        # dictionary_dataframe.to_excel(
-        #     "data/yelp_data/" + vertical + "-" + location + "-yelp_data.xlsx")
-        # print("Saved")
-        # print("[*] Extracting phones and urls from yelp data [*]")
-        # new_yelp_url_and_phones = []
-        # if new_yelp_leads == []:
-        #     new_yelp_url_and_phones.append({})
-        # else:
-        #     for lead in new_yelp_leads:
-        #         yelp_url_and_phone_dict = {}
-        #         phone_number = lead["phone"]
-        #         source_url = lead["yelp url"]
-        #         yelp_url_and_phone_dict["phone"] = phone_number
-        #         yelp_url_and_phone_dict["yelp url"] = source_url
-        #         new_yelp_url_and_phones.append(yelp_url_and_phone_dict)
+        print("[*] Saving scraped yelp data [*]")
+        dictionary_dataframe = pd.DataFrame(new_yelp_leads)
+        dictionary_dataframe.to_excel(
+            "data/yelp_data/" + vertical + "-" + location + "-yelp_data.xlsx")
+        print("Saved")
+        print("[*] Extracting phones and urls from yelp data [*]")
+        new_yelp_url_and_phones = []
+        if new_yelp_leads == []:
+            new_yelp_url_and_phones.append({})
+        else:
+            for lead in new_yelp_leads:
+                yelp_url_and_phone_dict = {}
+                phone_number = lead["phone"]
+                source_url = lead["yelp url"]
+                yelp_url_and_phone_dict["phone"] = phone_number
+                yelp_url_and_phone_dict["yelp url"] = source_url
+                new_yelp_url_and_phones.append(yelp_url_and_phone_dict)
 
         print("[*] Scraping for bbb Phones and urls [*]")
         new_bbb_url_and_phones = bbb_url_and_phone_scraper(
@@ -283,8 +283,8 @@ def run(vertical, location):
         new_yp_url_and_phones = yp_url_and_phone_scraper(
             driver, vertical, location)
         print("[*] Checking for empty lists [*]")
-        # comment when you want to run yelp
-        new_yelp_url_and_phones = [{}]
+        # uncomment when you don't want to run yelp
+        # new_yelp_url_and_phones = [{}]
         number_of_empty_lists = check_for_no_results(
             new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones)
         if number_of_empty_lists == 3:
