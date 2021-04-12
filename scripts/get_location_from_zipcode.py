@@ -45,8 +45,14 @@ def parse_location(soup):
 
 
 def get_location(zipcode):
-    html = get_html(zipcode)
-    soup = BeautifulSoup(html, features="lxml")
+    try:
+        location = {}
+        html = get_html(str(zipcode).zfill(5))
+        soup = BeautifulSoup(html, features="lxml")
 
-    location = parse_location(soup)
-    return location
+        if soup:
+            location = parse_location(soup)
+
+        return location
+    except Exception as e:
+        return {}
