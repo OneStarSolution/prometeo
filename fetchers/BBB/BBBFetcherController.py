@@ -1,5 +1,9 @@
+import psutil
+import signal
 import time
 import requests
+
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
 from bs4 import BeautifulSoup
 
@@ -13,9 +17,15 @@ class BBBFetcherController(FetcherController):
     MAX_PAGE_PER_SEARCH = 15
     BASE_URL = 'https://www.bbb.org/search?find_country={country}&find_loc={location}&find_text={category}'
     CLASSES = {
-        'results': 'MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center'
+        'results': 'Content-ro0uyh-0 VyFaZ rresult-item-ab__content'
     }
     SOURCE = "BBB"
+
+    def request_and_extract(self, i, target_url, headers):
+        url_with_page = f'{target_url}&page={i + 1}'
+        result = requests.get(url_with_page, headers=headers)
+        businesses = self.extract_business(result.text)
+        return businesses
 
     def _read_web(self, job: Job, phones_to_ignore=None):
 
@@ -23,7 +33,7 @@ class BBBFetcherController(FetcherController):
         job['category'] = job.get('category').replace(' ', "+")
         target_url = self.BASE_URL.format(**job)
         print(
-            f"Attempting to crawl BBB using business: {target_url}")
+            f"Attempting to crawl BBB using URL: {target_url}")
 
         headers = {
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.80 Safari/537.36",
@@ -31,15 +41,14 @@ class BBBFetcherController(FetcherController):
         }
 
         businesses = {}
+        s = time.perf_counter()
+        with ProcessPoolExecutor(max_workers=8) as pool:
+            tasks = [pool.submit(self.request_and_extract, i, target_url, headers)
+                     for i in range(0, self.MAX_PAGE_PER_SEARCH)]
 
-        for i in range(0, self.MAX_PAGE_PER_SEARCH):
-            url_with_page = f'{target_url}&page={i + 1}'
-            result = requests.get(url_with_page, headers=headers)
-            businesses |= self.extract_business(result.text)
-
-            if not businesses:
-                print("No business")
-                break
+            for task in as_completed(tasks):
+                res = task.result()
+                businesses |= res
 
         print(f"Bussines found: {len(businesses)}")
 
@@ -48,22 +57,10 @@ class BBBFetcherController(FetcherController):
 
         # Create the doc for each business
         docs = []
+        s = time.perf_counter()
         for phone in businesses:
             url = businesses.get(phone)
             doc = self.make_crawler_document(phone, url, job)
-
-            try:
-                clean_phone = CleanUtils.clean_phone(phone)
-                if not phones_to_ignore or clean_phone not in phones_to_ignore:
-                    print(f"{phone} not int phones to ignore, getting HTML")
-                    result = requests.get(
-                        businesses[phone], headers=headers)
-
-                    if result.status_code == 200:
-                        doc.setData(result.text)
-            except Exception as e:
-                print(e)
-
             docs.append(doc)
 
         self.save(docs)
@@ -98,9 +95,11 @@ class BBBFetcherController(FetcherController):
         return doc
 
 
-# job = {'country': 'USA', 'location': '96070', 'category': 'Water Treatment'}
-# b = BBBFetcherController()
-# s = time.perf_counter()
-# b._read_web(job)
-# e = time.perf_counter()
-# print(e-s)
+def run_sample():
+    job = {'country': 'USA', 'location': '96070',
+           'category': 'Water Treatment'}
+    b = BBBFetcherController()
+    s = time.perf_counter()
+    b._read_web(job)
+    e = time.perf_counter()
+    print(e-s)
