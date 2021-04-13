@@ -1,5 +1,3 @@
-# gcloud auth login
-
 instance_names=(
     "instance-extra-1-07zg"
     "instance-extra-1-0x5l"
@@ -23,16 +21,16 @@ instance_names=(
     "instance-extra-1-tl3w"
 )
 
-N=10
+category="Carpet_Cleaning"
+
 for instance_name in ${instance_names[@]}; do
-    ((i=i%N)); ((i++==0)) && wait
-    (echo $instance_name
+    echo $instance_name
     # Connect using SSH
-    gcloud compute ssh --project=directed-pier-294505 --zone=us-west2-a $instance_name --command="cd prometeo/ && sudo git pull && cd .. && bash prometeo/scripts/start.sh"
-    # # Create a screen
-    # screen
-    # # Build containers
-    # cd prometeo && sudo git pull && sudo docker-compose up -d --build && sudo docker exec -it prometeo_server_1 bash
-    # python3 fetchers/test_all/run.py --workers 3
-    echo "ending" ) &
+    gcloud compute ssh --project=directed-pier-294505 --zone=us-west2-a $instance_name --command="tar -zcvf $instance_name.tar.gz prometeo/data/yelp_data/$category*"
+    gcloud compute scp --recurse --zone=us-west2-a $instance_name:$instance_name.tar.gz data/download
+    echo "ending" 
 done
+
+tar -zcvf data/download/all_machines_yelp_data.tar.gz data/download/
+# Delete all the zip downloaded and keep all
+rm -rf data/download/instance*

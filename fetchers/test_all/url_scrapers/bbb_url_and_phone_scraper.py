@@ -10,7 +10,7 @@ def bbb_url_and_phone_scraper(driver, vertical, location):
     if location.isdigit():
         country = "USA"
     else:
-        country = "CAN"
+        country = "USA"
     bbb_url_list = []
     bbb_phone_list = []
     new_lead_dict_list = []
@@ -26,6 +26,7 @@ def bbb_url_and_phone_scraper(driver, vertical, location):
 
         try:
             driver.get(bbb_url)
+            print(bbb_url)
             if not already_clicked:
                 try:
                     time.sleep(1.5)
@@ -110,4 +111,5 @@ def bbb_url_and_phone_scraper(driver, vertical, location):
                             new_lead_dict["bbb url"] = source_url
                             new_lead_dict["phone"] = phone_number
                             new_lead_dict_list.append(new_lead_dict)
+    print(len(new_lead_dict_list))
     return(new_lead_dict_list)

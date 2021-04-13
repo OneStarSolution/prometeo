@@ -6,6 +6,7 @@ def clean_phone(raw_phone):
 
 
 def _load_historical_data():
+    return set(), set()
     historical_phones = set()
     for i in range(2, 10):
         with open(f'{i}_historical_phones.txt', "r+") as file:

@@ -7,7 +7,7 @@ import pandas as pd
 
 class FileUtils:
 
-    ALLOWED_EXTENSIONS = ['csv', 'xls', 'xlsx']
+    ALLOWED_EXTENSIONS = ['csv', 'xls', 'xlsx', 'zip']
 
     @staticmethod
     def read_parallel(paths, workers=4, concat=True, **read_options):
@@ -55,15 +55,17 @@ class FileUtils:
 
             if extension in FileUtils.ALLOWED_EXTENSIONS:
                 if extension == "xlsx" or extension == 'xls':
-                    data = pd.read_excel(path, **read_options)
+                    data = pd.read_excel(
+                        path, engine='openpyxl', ** read_options)
                 if extension == "csv":
                     data = pd.read_csv(path, **read_options)
             else:
                 print(
                     f'The extension: {extension} in {file_name} is not allowed')
 
-        except Exception:
+        except Exception as e:
             print(f"File {file_name} could not be read")
+            print(e)
 
         return data
 

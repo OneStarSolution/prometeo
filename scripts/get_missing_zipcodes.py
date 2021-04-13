@@ -2,16 +2,20 @@ import os
 
 import argparse
 import requests
-import subprocess
+import random
+
+from math import ceil
 
 
-instance_names = ("instance-team-1-2j48", "instance-team-1-3ph2", "instance-team-1-95x5", "instance-team-1-ch6w",
-                  "instance-team-1-fxfl", "instance-team-1-g03g", "instance-team-1-hb8h", "instance-team-1-j0k2",
-                  "instance-team-1-jkm2", "instance-team-1-kzq9", "instance-team-1-m42s", "instance-team-1-m9mp",
-                  "instance-team-1-mk32", "instance-team-1-mwlp", "instance-team-1-n9g8", "instance-team-1-nvxl",
-                  "instance-team-1-q2xl", "instance-team-1-s131", "instance-team-1-v94h", "instance-team-1-zhp8")
+def split_list(zipcodes: list, chunks: int):
 
-instance_names_2 = ("replaceof1", "replaceof2")
+    chunk_size = ceil(len(zipcodes) / chunks)
+    end = len(zipcodes)
+
+    for start in range(0, end, chunk_size):
+        zipcodes_target = list(map(
+            lambda x: x+'\n', zipcodes[start: start + chunk_size]))
+        yield zipcodes_target
 
 
 if __name__ == "__main__":
@@ -19,20 +23,28 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Process crawl params.')
     parser.add_argument('--pattern', '-p', metavar='pattern', type=str, dest="pattern",
                         default=1, help='regex', required=True)
+    parser.add_argument('-r', '--redistribute',
+                        dest="redistribute", action='store_true')
+    parser.add_argument('--save', '-s', metavar='save', type=bool, dest="save",
+                        default=True, help='save the missing zipcodes in a file')
+    parser.add_argument('--files', '-f', metavar='paths',
+                        dest="paths", required=True,  nargs='*', default=[])
+    parser.add_argument('-i', '--instances', metavar='instances',
+                        dest="instances", required=True,  type=int)
     args = parser.parse_args()
-    results = []
 
-    for i in range(1, 21):
-        try:
-            instance_name = f'CE_INSTANCE_{i}'
-            host = os.getenv(instance_name)
-            url = f"http://{host}:8000/enhanced"
-            print(f"Querying: {instance_name} - {url}")
-            params = {"pattern": args.pattern}
-            res = requests.get(url, params=params, timeout=5)
-            results.extend(res.json())
-        except Exception as e:
-            print(e)
+    # for i in range(1, 21):
+    #     try:
+    #         instance_name = f'CE_INSTANCE_{i}'
+    #         host = os.getenv(instance_name)
+    #         url = f"http://{host}:8000/enhanced"
+    #         print(f"Querying: {instance_name} - {url}")
+    #         params = {"pattern": args.pattern}
+    #         res = requests.get(url, params=params, timeout=2)
+    #         if res.json():
+    #             results.extend(res.json())
+    #     except Exception as e:
+    #         print(e)
 
     # read all the zipcodes
     with open('valid_zipcodes.csv', 'r') as f:
@@ -40,8 +52,25 @@ if __name__ == "__main__":
                         for line in f.readlines()])
 
     zipcodes_crawled = set([zipcode.split('-')[1].strip().zfill(5)
-                            for zipcode in results])
+                            for zipcode in args.paths])
 
     not_crawled_yet = zipcodes.difference(zipcodes_crawled)
+
+    not_crawled_yet = list(not_crawled_yet)
+
+    if args.redistribute:
+        random.shuffle(not_crawled_yet)
+
+        for i, data in enumerate(split_list(not_crawled_yet, args.instances)):
+            # instance_name = f'CE_INSTANCE_{i + 1}'
+            # host = os.getenv(instance_name)
+            # url = f"http://{host}:8000/redistribution"
+            # requests.post(url, json=data)
+            with open(f"data/redistribution/instance_{i+1}.txt", "w") as f:
+                f.writelines(data)
+
+    if args.save:
+        with open(f"missing_zipcodes_of_{args.pattern}.csv", "w") as f:
+            f.writelines(list(map(lambda x: f"{x}\n", not_crawled_yet)))
 
     print(len(not_crawled_yet))

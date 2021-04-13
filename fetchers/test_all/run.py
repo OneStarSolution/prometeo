@@ -44,7 +44,8 @@ def get_locations():
 space = "*" * 75
 
 # 'plumbing', 'restoration'
-verticals = ["Air Duct"  "Junk Removal", "Fireplace and Chimney", "Carpet Cleaning", "Appliance Repair"]
+verticals = ["Air Duct"  "Junk Removal", "Fireplace and Chimney",
+             "Carpet Cleaning", "Appliance Repair"]
 
 locations = get_locations()
 
@@ -275,10 +276,13 @@ def run(vertical, location):
         #         yelp_url_and_phone_dict["phone"] = phone_number
         #         yelp_url_and_phone_dict["yelp url"] = source_url
         #         new_yelp_url_and_phones.append(yelp_url_and_phone_dict)
-
         print("[*] Scraping for bbb Phones and urls [*]")
+        s = time.perf_counter()
         new_bbb_url_and_phones = bbb_url_and_phone_scraper(
-            driver, vertical, location)
+            driver, "Water+Treatment", "96070")
+        e = time.perf_counter()
+        print("time crawling bbb:", e-s)
+        return
         print("[*] Scraping for yp phones and urls [*]")
         new_yp_url_and_phones = yp_url_and_phone_scraper(
             driver, vertical, location)
