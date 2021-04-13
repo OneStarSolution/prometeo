@@ -41,7 +41,7 @@ class BBBFetcherController(FetcherController):
         }
 
         businesses = {}
-        s = time.perf_counter()
+
         with ProcessPoolExecutor(max_workers=8) as pool:
             tasks = [pool.submit(self.request_and_extract, i, target_url, headers)
                      for i in range(0, self.MAX_PAGE_PER_SEARCH)]
@@ -57,7 +57,7 @@ class BBBFetcherController(FetcherController):
 
         # Create the doc for each business
         docs = []
-        s = time.perf_counter()
+
         for phone in businesses:
             url = businesses.get(phone)
             doc = self.make_crawler_document(phone, url, job)
@@ -102,4 +102,4 @@ def run_sample():
     s = time.perf_counter()
     b._read_web(job)
     e = time.perf_counter()
-    print(e-s)
+    print(f"Time used: {e-s}")
