@@ -6,7 +6,8 @@ from fetchers.test_all.utils.duplicate_checker import duplicate_checker
 
 
 def bbb_url_and_phone_scraper(driver, vertical, location):
-
+    print(
+        f"Starting BBB In {location} - {vertical}")
     if location.isdigit():
         country = "USA"
     else:
@@ -35,7 +36,6 @@ def bbb_url_and_phone_scraper(driver, vertical, location):
                     if elem:
                         elem.click()
                 except Exception as e:
-                    print(e)
                     pass
                 else:
                     already_clicked = True
@@ -49,7 +49,6 @@ def bbb_url_and_phone_scraper(driver, vertical, location):
                             elem.click()
                             time.sleep(1)
                     except Exception as e:
-                        print(e)
                         pass
                     else:
                         already_clicked = True
@@ -111,5 +110,7 @@ def bbb_url_and_phone_scraper(driver, vertical, location):
                             new_lead_dict["bbb url"] = source_url
                             new_lead_dict["phone"] = phone_number
                             new_lead_dict_list.append(new_lead_dict)
-    print(len(new_lead_dict_list))
+
+    print(
+        f"BBB In {location} - {vertical} got: {len(new_lead_dict_list)} new leads")
     return(new_lead_dict_list)
