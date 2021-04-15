@@ -279,10 +279,9 @@ def run(vertical, location):
         print("[*] Scraping for bbb Phones and urls [*]")
         s = time.perf_counter()
         new_bbb_url_and_phones = bbb_url_and_phone_scraper(
-            driver, "Water+Treatment", "96070")
+            driver, vertical, location)
         e = time.perf_counter()
         print("time crawling bbb:", e-s)
-        return
         print("[*] Scraping for yp phones and urls [*]")
         new_yp_url_and_phones = yp_url_and_phone_scraper(
             driver, vertical, location)
