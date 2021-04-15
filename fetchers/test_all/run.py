@@ -19,12 +19,13 @@ from fetchers.test_all.search_engines.ask_scraper import ask_scraper
 from fetchers.test_all.search_engines.bing_scraper import bing_scraper
 from fetchers.test_all.search_engines.info_scraper import info_scraper
 from fetchers.test_all.search_engines.google_scraper import google_scraper
+from uscities import US_CITIES
 
 
 def get_locations():
 
-    with open('zipcodes_to_crawl.csv', 'r') as f:
-        lines = [line.strip() for line in f.readlines()]
+    # with open('zipcodes_to_crawl.csv', 'r') as f:
+    #     lines = [line.strip() for line in f.readlines()]
 
     redistribution = []
     # if os.path.isfile('redistribution.txt'):
@@ -37,15 +38,18 @@ def get_locations():
     #                     for line in f.readlines()]
 
     # for line in lines + canada_lines:
-    for line in lines:
-        yield line.strip().replace('\n', '').replace('$', '')
+    # for line in lines:
+    #     yield line.strip().replace('\n', '').replace('$', '')
+
+    for city in US_CITIES:
+        yield city
 
 
 space = "*" * 75
 
 # 'plumbing', 'restoration'
-verticals = ["Fireplace and Chimney",  "Junk Removal", "Water Treatment",
-             "Carpet Cleaning", "Appliance Repair", "Air Duct"]
+verticals = ["Air Duct", "Fireplace and Chimney",  "Junk Removal", "Water Treatment",
+             "Carpet Cleaning", "Appliance Repair"]
 
 locations = get_locations()
 
@@ -338,11 +342,15 @@ def main():
     with ProcessPoolExecutor(max_workers=args.workers) as executor:
         for vertical in verticals:
             for location in locations:
-                if (vertical.replace(" ", "_"), location) in verticals_and_locations_crawled:
+                check_vertical, check_location = vertical.replace(
+                    " ", "_"), location.replace(",", "%2C")
+                if (check_vertical, check_location) in verticals_and_locations_crawled:
                     continue
                 if limit >= 5000:
                     break
                 limit += 1
+                vertical, location = vertical.replace(
+                    " ", "+"), location.replace(",", "%2C").replace(" ", "+")
                 executor.submit(run, vertical, location)
 
     e = time.perf_counter()
