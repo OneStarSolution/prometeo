@@ -19,7 +19,6 @@ from fetchers.test_all.search_engines.ask_scraper import ask_scraper
 from fetchers.test_all.search_engines.bing_scraper import bing_scraper
 from fetchers.test_all.search_engines.info_scraper import info_scraper
 from fetchers.test_all.search_engines.google_scraper import google_scraper
-from uscities import US_CITIES
 
 
 def get_locations():
@@ -41,7 +40,13 @@ def get_locations():
     # for line in lines:
     #     yield line.strip().replace('\n', '').replace('$', '')
 
-    for city in US_CITIES:
+    us_cities = []
+    if os.path.isfile('uscities.csv'):
+        print("reading us cities")
+        with open("uscities.csv") as f:
+            us_cities = f.readlines()
+
+    for city in us_cities:
         yield city
 
 
@@ -342,15 +347,13 @@ def main():
     with ProcessPoolExecutor(max_workers=args.workers) as executor:
         for vertical in verticals:
             for location in locations:
-                check_vertical, check_location = vertical.replace(
-                    " ", "_"), location.replace(",", "%2C")
-                if (check_vertical, check_location) in verticals_and_locations_crawled:
+                vertical, location = vertical.replace(
+                    " ", "+"), location.replace(",", "%2C").replace(" ", "+")
+                if (vertical, location) in verticals_and_locations_crawled:
                     continue
                 if limit >= 5000:
                     break
                 limit += 1
-                vertical, location = vertical.replace(
-                    " ", "+"), location.replace(",", "%2C").replace(" ", "+")
                 executor.submit(run, vertical, location)
 
     e = time.perf_counter()
