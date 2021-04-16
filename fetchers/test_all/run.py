@@ -54,7 +54,7 @@ space = "*" * 75
 
 # 'plumbing', 'restoration'
 verticals = ["Fireplace and Chimney",  "Junk Removal", "Water Treatment",
-             "Carpet Cleaning", "Appliance Repair", "Air Duct",]
+             "Carpet Cleaning", "Appliance Repair", "Air Duct", ]
 
 locations = get_locations()
 
@@ -348,7 +348,7 @@ def main():
         for vertical in verticals:
             for location in locations:
                 vertical, location = vertical.replace(
-                    " ", "+"), location.replace(",", "%2C").replace(" ", "+")
+                    " ", "+"), location.replace(",", "%2C").replace(" ", "+").replace("\n", "")
                 if (vertical, location) in verticals_and_locations_crawled:
                     continue
                 if limit >= 5000:
