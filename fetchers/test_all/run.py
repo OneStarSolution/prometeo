@@ -23,8 +23,8 @@ from fetchers.test_all.search_engines.google_scraper import google_scraper
 
 def get_locations():
 
-    # with open('zipcodes_to_crawl.csv', 'r') as f:
-    #     lines = [line.strip() for line in f.readlines()]
+    with open('zipcodes_to_crawl.csv', 'r') as f:
+        lines = [line.strip() for line in f.readlines()]
 
     redistribution = []
     # if os.path.isfile('redistribution.txt'):
@@ -37,24 +37,23 @@ def get_locations():
     #                     for line in f.readlines()]
 
     # for line in lines + canada_lines:
-    # for line in lines:
-    #     yield line.strip().replace('\n', '').replace('$', '')
+    for line in lines:
+        yield line.strip().replace('\n', '').replace('$', '')
 
-    us_cities = []
-    if os.path.isfile('uscities.csv'):
-        print("reading us cities")
-        with open("uscities.csv") as f:
-            us_cities = f.readlines()
+    # us_cities = []
+    # if os.path.isfile('uscities.csv'):
+    #     print("reading us cities")
+    #     with open("uscities.csv") as f:
+    #         us_cities = f.readlines()
 
-    for city in us_cities:
-        yield city
+    # for city in us_cities:
+    #     yield city
 
 
 space = "*" * 75
 
 # 'plumbing', 'restoration'
-verticals = ["Carpet Cleaning", "Appliance Repair",
-             "Air Duct", "Fireplace and Chimney", "Junk Removal", "Water Treatment", ]
+verticals = ["heating and air conditioning", ]
 
 locations = get_locations()
 
