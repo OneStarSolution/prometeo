@@ -4,13 +4,13 @@ import requests
 from bs4 import BeautifulSoup
 
 from fetchers.models.Job import Job
-from utils.CleanUtils import CleanUtils
-from fetchers.FetcherDocument import FetcherDocument
-from fetchers.FetcherController import FetcherController
+#from utils.CleanUtils import CleanUtils
+#from fetchers.FetcherDocument import FetcherDocument
+#from fetchers.FetcherController import FetcherController
 from fetchers.test_all.utils.duplicate_checker import duplicate_checker
 
 
-class BBBFetcherController(FetcherController):
+class BBBFetcherController():
     MAX_PAGE_PER_SEARCH = 15
     BASE_URL = 'https://www.bbb.org/search?find_country={country}&find_loc={location}&find_text={category}'
     CLASSES = {
@@ -45,7 +45,8 @@ class BBBFetcherController(FetcherController):
         print(f"Bussines found: {len(businesses)}")
 
         if not businesses:
-            return 0
+            # return 0
+            return [{}]
 
         # Create the doc for each business
         docs = []

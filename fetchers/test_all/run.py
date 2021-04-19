@@ -1,4 +1,3 @@
-from fetchers.bbb.BBBFetcherController import BBBFetcherController
 import os
 import time
 
@@ -20,6 +19,7 @@ from fetchers.test_all.search_engines.ask_scraper import ask_scraper
 from fetchers.test_all.search_engines.bing_scraper import bing_scraper
 from fetchers.test_all.search_engines.info_scraper import info_scraper
 from fetchers.test_all.search_engines.google_scraper import google_scraper
+from fetchers.BBB.BBBFetcherController import BBBFetcherController
 
 
 def get_locations():
