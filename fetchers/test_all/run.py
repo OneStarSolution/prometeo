@@ -1,3 +1,4 @@
+from fetchers.bbb.BBBFetcherController import BBBFetcherController
 import os
 import time
 
@@ -286,8 +287,10 @@ def run(vertical, location):
         #         new_yelp_url_and_phones.append(yelp_url_and_phone_dict)
         print("[*] Scraping for bbb Phones and urls [*]")
         s = time.perf_counter()
-        new_bbb_url_and_phones = bbb_url_and_phone_scraper(
-            driver, vertical, location)
+        bbb_crawler = BBBFetcherController()
+        job = {'country': 'USA', 'location': location,
+               'category': vertical}
+        new_bbb_url_and_phones = bbb_crawler._read_web(job)
         e = time.perf_counter()
         print("time crawling bbb:", e-s)
         print("[*] Scraping for yp phones and urls [*]")

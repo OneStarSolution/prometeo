@@ -7,6 +7,7 @@ from fetchers.models.Job import Job
 from utils.CleanUtils import CleanUtils
 from fetchers.FetcherDocument import FetcherDocument
 from fetchers.FetcherController import FetcherController
+from fetchers.test_all.utils.duplicate_checker import duplicate_checker
 
 
 class BBBFetcherController(FetcherController):
@@ -50,25 +51,41 @@ class BBBFetcherController(FetcherController):
         docs = []
         for phone in businesses:
             url = businesses.get(phone)
-            doc = self.make_crawler_document(phone, url, job)
 
-            try:
-                clean_phone = CleanUtils.clean_phone(phone)
-                if not phones_to_ignore or clean_phone not in phones_to_ignore:
-                    print(f"{phone} not int phones to ignore, getting HTML")
-                    result = requests.get(
-                        businesses[phone], headers=headers)
+            source_url = url
+            source_url = source_url.split("https://")[1]
+            if '?' in source_url:
+                source_url = source_url.split("?")[0]
 
-                    if result.status_code == 200:
-                        doc.setData(result.text)
-            except Exception as e:
-                print(e)
+            url_status = duplicate_checker('bbb url', url)
+            if url_status:
+                status = duplicate_checker('phone', phone.replace("-", ""))
+                if status:
+                    new_lead_dict = {}
+                    new_lead_dict["bbb url"] = source_url
+                    new_lead_dict["phone"] = phone.replace("-", "")
+                    docs.append(new_lead_dict)
 
-            docs.append(doc)
+            # Uncomment when you want to store in a db
+            # doc = self.make_crawler_document(phone, url, job)
 
-        self.save(docs)
+            # try:
+            #     clean_phone = CleanUtils.clean_phone(phone)
+            #     if not phones_to_ignore or clean_phone not in phones_to_ignore:
+            #         print(f"{phone} not int phones to ignore, getting HTML")
+            #         result = requests.get(
+            #             businesses[phone], headers=headers)
 
-        return len(businesses)
+            #         if result.status_code == 200:
+            #             doc.setData(result.text)
+            # except Exception as e:
+            #     print(e)
+
+        # Uncomment when you want to store in a db
+        # self.save(docs)
+
+        # return len(businesses)
+        return docs
 
     def extract_business(self, html):
         soup = BeautifulSoup(html, 'html.parser')
