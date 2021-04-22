@@ -23,14 +23,16 @@ instance_names=(
     "instance-extra-1-tl3w"
 )
 
+N=10
 for instance_name in ${instance_names[@]}; do
-    echo $instance_name
+    ((i=i%N)); ((i++==0)) && wait
+    (echo $instance_name
     # Connect using SSH
-    gcloud compute ssh --project=directed-pier-294505 --zone=us-west2-a $instance_name --command="ls prometeo/data/enhanced | grep heating+ | wc -l"
+    gcloud compute ssh --project=directed-pier-294505 --zone=us-west2-a $instance_name --command='sudo find . -wholename "./prometeo/data/enhanced/*" -delete && sudo find . -wholename "./prometeo/data/yelp_data/*" -delete && sudo find . -wholename "./prometeo/data/phones_urls/*" -delete'
     # # Create a screen
     # screen
     # # Build containers
     # cd prometeo && sudo git pull && sudo docker-compose up -d --build && sudo docker exec -it prometeo_server_1 bash
     # python3 fetchers/test_all/run.py --workers 3
+    echo "ending" ) &
 done
-

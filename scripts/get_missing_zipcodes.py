@@ -27,8 +27,8 @@ if __name__ == "__main__":
                         dest="redistribute", action='store_true')
     parser.add_argument('--save', '-s', metavar='save', type=bool, dest="save",
                         default=True, help='save the missing zipcodes in a file')
-    parser.add_argument('--files', '-f', metavar='paths',
-                        dest="paths", required=True,  nargs='*', default=[])
+    # parser.add_argument('--files', '-f', metavar='paths',
+    #                     dest="paths", required=True,  nargs='*', default=[])
     parser.add_argument('-i', '--instances', metavar='instances',
                         dest="instances", required=True,  type=int)
     args = parser.parse_args()
@@ -47,18 +47,28 @@ if __name__ == "__main__":
     #         print(e)
 
     # read all the zipcodes
-    with open('valid_zipcodes.csv', 'r') as f:
+    # with open('valid_zipcodes.csv', 'r') as f:
+    #     zipcodes = set([line.replace('\n', '').zfill(5)
+    #                     for line in f.readlines()])
+
+    with open('CAN_city.csv', 'r') as f:
         zipcodes = set([line.replace('\n', '').zfill(5)
                         for line in f.readlines()])
 
+    with open('paths_crawled.txt', 'r') as f:
+        paths = set([line.replace('\n', '').zfill(5)
+                     for line in f.readlines()])
+
     zipcodes_crawled = set([zipcode.split('-')[1].strip().zfill(5)
-                            for zipcode in args.paths])
+                            for zipcode in paths])
 
     not_crawled_yet = zipcodes.difference(zipcodes_crawled)
 
     not_crawled_yet = list(not_crawled_yet)
 
+    print(args.redistribute)
     if args.redistribute:
+        print("entre")
         random.shuffle(not_crawled_yet)
 
         for i, data in enumerate(split_list(not_crawled_yet, args.instances)):

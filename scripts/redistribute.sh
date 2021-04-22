@@ -43,15 +43,16 @@ instance_names=("instance-extra-1-07zg"
     "instance-extra-1-tl3w")
 paths=()
 
-for instance_name in ${instance_names_query[@]}; do
-    echo $instance_name
-    # Connect using SSH
-    paths+=($(gcloud compute ssh --project=directed-pier-294505 --zone=us-west2-a $instance_name --command="ls prometeo/data/enhanced | grep Roofing"))
-done
+# for instance_name in ${instance_names_query[@]}; do
+#     echo $instance_name
+#     # Connect using SSH
+#     paths+=($(gcloud compute ssh --project=directed-pier-294505 --zone=us-west2-a $instance_name --command="ls prometeo/data/enhanced | grep heat"))
+# done
 
-echo "----"
-echo ${#paths[@]}
-python3 scripts/get_missing_zipcodes.py -p Roofing -f ${paths[@]} -i ${#instance_names[@]} -r
+# echo "----"
+# echo ${#paths[@]}
+# printf "%s\n" "${paths[@]}" > paths_crawled.txt
+python3 scripts/get_missing_zipcodes.py -p heating+ -i ${#instance_names[@]} -r
 
 counter=1
 for instance_name in ${instance_names[@]}; do

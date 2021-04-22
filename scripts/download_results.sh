@@ -20,12 +20,12 @@ instance_names=(
     "instance-extra-1-t4cx"
     "instance-extra-1-tl3w"
 )
-category="Appliance_Repair"
-# N=20
+category="heating+"
+N=10
 # for instance_name in ${instance_names[@]}; do
 #     ((i=i%N)); ((i++==0)) && wait
 #     (echo $instance_name
-#     # Connect using SSH
+#     Connect using SSH
 #     gcloud compute ssh --project=directed-pier-294505 --zone=us-west2-a $instance_name --command="tar -zcvf $instance_name.tar.gz prometeo/data/enhanced/$category*"
 #     gcloud compute scp --recurse --zone=us-west2-a $instance_name:$instance_name.tar.gz data/download
 #     echo "ending") &
