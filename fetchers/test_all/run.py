@@ -24,17 +24,20 @@ from fetchers.BBB.BBBFetcherController import BBBFetcherController
 
 def get_locations():
 
-    # with open('zipcodes_to_crawl.csv', 'r') as f:
-    #     lines = [line.strip() for line in f.readlines()]
+    with open('zipcodes_to_crawl.csv', 'r') as f:
+        lines = [line.strip() for line in f.readlines()]
 
-    redistribution = []
-    if os.path.isfile('redistribution.txt'):
-        print("reading redistribution")
-        with open("redistribution.txt") as f:
-            redistribution = f.readlines()
-
-    for zipcode in redistribution:
+    for zipcode in lines:
         yield zipcode
+
+    # redistribution = []
+    # if os.path.isfile('redistribution.txt'):
+    #     print("reading redistribution")
+    #     with open("redistribution.txt") as f:
+    #         redistribution = f.readlines()
+
+    # for zipcode in redistribution:
+    #     yield zipcode
 
     # with open('CAN_city.csv', 'r') as f:
     #     canada_lines = [line.replace('\n', '')[:-1]
@@ -57,7 +60,7 @@ def get_locations():
 space = "*" * 75
 
 # 'plumbing', 'restoration'
-verticals = ["window cleaning"]
+verticals = ["plumbing"]
 
 locations = get_locations()
 
@@ -291,7 +294,7 @@ def run(vertical, location):
         print("[*] Scraping for bbb Phones and urls [*]")
         s = time.perf_counter()
         bbb_crawler = BBBFetcherController()
-        job = {'country': 'CAN', 'location': location,
+        job = {'country': 'USA', 'location': location,
                'category': vertical}
         new_bbb_url_and_phones = bbb_crawler._read_web(job)
         e = time.perf_counter()
