@@ -291,17 +291,18 @@ def run(vertical, location):
         print("[*] Scraping for bbb Phones and urls [*]")
         s = time.perf_counter()
         bbb_crawler = BBBFetcherController()
-        job = {'country': 'USA', 'location': location,
+        job = {'country': 'CAN', 'location': location,
                'category': vertical}
         new_bbb_url_and_phones = bbb_crawler._read_web(job)
         e = time.perf_counter()
         print("time crawling bbb:", e-s)
-        print("[*] Scraping for yp phones and urls [*]")
-        new_yp_url_and_phones = yp_url_and_phone_scraper(
-            driver, vertical, location)
+        # print("[*] Scraping for yp phones and urls [*]")
+        # new_yp_url_and_phones = yp_url_and_phone_scraper(
+        #     driver, vertical, location)
         print("[*] Checking for empty lists [*]")
         # comment when you want to run yelp
         new_yelp_url_and_phones = [{}]
+        new_yp_url_and_phones = [{}]
         number_of_empty_lists = check_for_no_results(
             new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones)
         if number_of_empty_lists == 3:
