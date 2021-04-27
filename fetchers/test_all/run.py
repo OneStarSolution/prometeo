@@ -27,17 +27,17 @@ def get_locations():
     with open('zipcodes_to_crawl.csv', 'r') as f:
         lines = [line.strip() for line in f.readlines()]
 
-    # for zipcode in lines:
-    #     yield zipcode
-
-    redistribution = []
-    if os.path.isfile('redistribution.txt'):
-        print("reading redistribution")
-        with open("redistribution.txt") as f:
-            redistribution = f.readlines()
-
-    for zipcode in redistribution:
+    for zipcode in lines:
         yield zipcode
+
+    # redistribution = []
+    # if os.path.isfile('redistribution.txt'):
+    #     print("reading redistribution")
+    #     with open("redistribution.txt") as f:
+    #         redistribution = f.readlines()
+
+    # for zipcode in redistribution:
+    #     yield zipcode
 
     # with open('CAN_city.csv', 'r') as f:
     #     canada_lines = [line.replace('\n', '')[:-1]
