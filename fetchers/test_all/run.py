@@ -24,9 +24,6 @@ from fetchers.BBB.BBBFetcherController import BBBFetcherController
 
 def get_locations():
 
-    # with open('zipcodes_to_crawl.csv', 'r') as f:
-    #     lines = [line.strip() for line in f.readlines()]
-
     # for zipcode in lines:
     #     yield zipcode
 
@@ -39,16 +36,16 @@ def get_locations():
     # for zipcode in redistribution:
     #     yield zipcode
 
+    with open('zipcodes_to_crawl.csv', 'r') as f:
+        lines = [line.strip() for line in f.readlines()]
+
     with open('CAN_city.csv', 'r') as f:
         canada_lines = [line.replace('\n', '')[:-1]
                         for line in f.readlines()]
 
-    for city in canada_lines:
-        yield city
-
-    # # for line in lines + canada_lines:
-    # for line in lines:
-    #     yield line.strip().replace('\n', '').replace('$', '')
+    for line in lines + canada_lines:
+        # for line in lines:
+        yield line.strip().replace('\n', '').replace('$', '')
 
     # us_cities = []
     # if os.path.isfile('uscities.csv'):
@@ -63,7 +60,7 @@ def get_locations():
 space = "*" * 75
 
 # 'plumbing', 'restoration'
-verticals = ["restoration"]
+verticals = ["window cleaning"]
 
 locations = get_locations()
 
