@@ -42,6 +42,7 @@ def get_locations():
     with open('CAN_city.csv', 'r') as f:
         canada_lines = [line.replace('\n', '')[:-1]
                         for line in f.readlines()]
+        canada_lines = []
 
     for line in lines + canada_lines:
         # for line in lines:
