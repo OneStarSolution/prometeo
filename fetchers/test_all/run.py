@@ -39,7 +39,7 @@ def get_locations():
     with open('zipcodes_to_crawl.csv', 'r') as f:
         lines = [line.strip() for line in f.readlines()]
 
-    with open('cacities_tocrawl.csv', 'r') as f:
+    with open('cacities.csv', 'r') as f:
         canada_lines = [line.replace('\n', '')[:-1]
                         for line in f.readlines()]
 
@@ -60,7 +60,7 @@ def get_locations():
 space = "*" * 75
 
 # 'plumbing', 'restoration'
-verticals = ["window cleaning"]
+verticals = ["garage door"]
 
 locations = get_locations()
 
