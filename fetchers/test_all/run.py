@@ -24,37 +24,25 @@ from fetchers.BBB.BBBFetcherController import BBBFetcherController
 
 def get_locations():
 
-    # for zipcode in lines:
-    #     yield zipcode
+    redistribution = []
+    if os.path.isfile('redistribution.txt'):
+        print("reading redistribution")
+        with open("redistribution.txt") as f:
+            redistribution = f.readlines()
 
-    # redistribution = []
-    # if os.path.isfile('redistribution.txt'):
-    #     print("reading redistribution")
-    #     with open("redistribution.txt") as f:
-    #         redistribution = f.readlines()
+    for zipcode in redistribution:
+        yield zipcode
 
-    # for zipcode in redistribution:
-    #     yield zipcode
+    # with open('zipcodes_to_crawl.csv', 'r') as f:
+    #     lines = [line.strip() for line in f.readlines()]
 
-    with open('zipcodes_to_crawl.csv', 'r') as f:
-        lines = [line.strip() for line in f.readlines()]
+    # with open('cacities.csv', 'r') as f:
+    #     canada_lines = [line.replace('\n', '')[:-1]
+    #                     for line in f.readlines()]
 
-    with open('cacities.csv', 'r') as f:
-        canada_lines = [line.replace('\n', '')[:-1]
-                        for line in f.readlines()]
-
-    for line in lines + canada_lines:
-        # for line in lines:
-        yield line.strip().replace('\n', '').replace('$', '')
-
-    # us_cities = []
-    # if os.path.isfile('uscities.csv'):
-    #     print("reading us cities")
-    #     with open("uscities.csv") as f:
-    #         us_cities = f.readlines()
-
-    # for city in us_cities:
-    #     yield city
+    # for line in lines + canada_lines:
+    #     # for line in lines:
+    #     yield line.strip().replace('\n', '').replace('$', '')
 
 
 space = "*" * 75
