@@ -14,7 +14,7 @@ class BBBFetcherController():
     MAX_PAGE_PER_SEARCH = 15
     BASE_URL = 'https://www.bbb.org/search?find_country={country}&find_loc={location}&find_text={category}'
     CLASSES = {
-        'results': 'MuiGrid-root MuiGrid-container MuiGrid-align-items-xs-center'
+        'results': 'Content-ro0uyh-0 iFxxPD rresult-item-ab__content'
     }
     SOURCE = "BBB"
 
