@@ -22,16 +22,23 @@ from fetchers.test_all.search_engines.google_scraper import google_scraper
 from fetchers.BBB.BBBFetcherController import BBBFetcherController
 
 
-def get_locations():
+def get_locations(redistribution_flag):
 
-    # redistribution = []
-    # if os.path.isfile('redistribution.txt'):
-    #     print("reading redistribution")
-    #     with open("redistribution.txt") as f:
-    #         redistribution = f.readlines()
+    if redistribution_flag:
+        print("using redistributed zipcodes")
+        redistribution = []
+        if os.path.isfile('redistribution.txt'):
+            print("reading redistribution")
+            with open("redistribution.txt") as f:
+                redistribution = f.readlines()
 
-    # for zipcode in redistribution:
-    #     yield zipcode
+        for zipcode in redistribution:
+            yield zipcode
+
+        # This function finish here if redistribution_flag was set
+        return
+
+    print("using assigned zipcodes")
 
     with open('zipcodes_to_crawl.csv', 'r') as f:
         lines = [line.strip() for line in f.readlines()]
@@ -49,8 +56,6 @@ space = "*" * 75
 
 # 'plumbing', 'restoration'
 verticals = ["pool repair"]
-
-locations = get_locations()
 
 
 def create_driver():
@@ -331,7 +336,11 @@ def main():
     parser = argparse.ArgumentParser(description='Process crawl params.')
     parser.add_argument('--workers', metavar='workers', type=int, dest="workers",
                         default=1, help='number of workers', required=False)
+    parser.add_argument('--redistribution', '-r', metavar='redistribution', type=bool, dest="redistribution",
+                        default=False, help='choose between run zipcodes assigned or the zipcodes redistributed')
     args = parser.parse_args()
+
+    locations = get_locations(args.redistribution)
 
     print(f"\nRunning with {args.workers} workers\n")
 
