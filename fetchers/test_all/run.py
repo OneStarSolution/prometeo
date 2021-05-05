@@ -54,9 +54,6 @@ def get_locations(redistribution_flag):
 
 space = "*" * 75
 
-# 'plumbing', 'restoration'
-verticals = ["pool repair"]
-
 
 def create_driver():
     firefox_options = Options()
@@ -336,11 +333,17 @@ def main():
     parser = argparse.ArgumentParser(description='Process crawl params.')
     parser.add_argument('--workers', metavar='workers', type=int, dest="workers",
                         default=1, help='number of workers', required=False)
-    parser.add_argument('--redistribution', '-r', metavar='redistribution', type=bool, dest="redistribution",
-                        default=False, help='choose between run zipcodes assigned or the zipcodes redistributed')
+    parser.add_argument('--redistribution', '-r', metavar='redistribution', type=bool,
+                        dest="redistribution", default=False,
+                        help='choose between run zipcodes assigned or the zipcodes redistributed')
+    parser.add_argument('--category', metavar='category_to_crawl', type=str,
+                        dest="category_to_crawl", help='category to crawl', required=True)
     args = parser.parse_args()
 
     locations = get_locations(args.redistribution)
+    verticals = [args.category_to_crawl]
+
+    print(args.redistribution, args.category_to_crawl)
 
     print(f"\nRunning with {args.workers} workers\n")
 
