@@ -28,7 +28,7 @@ for instance_name in ${instance_names[@]}; do
     ((i=i%N)); ((i++==0)) && wait
     (echo $instance_name
     # Connect using SSH
-    gcloud compute ssh --project=directed-pier-294505 --zone=us-west2-a $instance_name --command='cd prometeo/ && sudo git pull && cd .. && bash prometeo/scripts/start.sh $1 $2 "$3"'
+    gcloud compute ssh --project=directed-pier-294505 --zone=us-west2-a $instance_name --command="cd prometeo/ && sudo git pull && cd .. && bash prometeo/scripts/start.sh $1 $2 '$3'"
     # # Create a screen
     # screen
     # # Build containers
