@@ -47,13 +47,13 @@ if __name__ == "__main__":
     #         print(e)
 
     # read all the zipcodes
-    # with open('valid_zipcodes.csv', 'r') as f:
-    #     zipcodes = set([line.replace('\n', '').zfill(5)
-    #                     for line in f.readlines()])
-
-    with open('CAN_city.csv', 'r') as f:
+    with open('valid_zipcodes.csv', 'r') as f:
         zipcodes = set([line.replace('\n', '').zfill(5)
                         for line in f.readlines()])
+
+    # with open('CAN_city.csv', 'r') as f:
+    #     zipcodes = set([line.replace('\n', '').zfill(5)
+    #                     for line in f.readlines()])
 
     with open('paths_crawled.txt', 'r') as f:
         paths = set([line.replace('\n', '').zfill(5)

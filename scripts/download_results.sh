@@ -20,7 +20,7 @@ instance_names=(
     "instance-extra-1-t4cx"
     "instance-extra-1-tl3w"
 )
-category="heating+"
+category="tile"
 N=10
 # for instance_name in ${instance_names[@]}; do
 #     ((i=i%N)); ((i++==0)) && wait
