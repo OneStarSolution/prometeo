@@ -2,10 +2,10 @@ import os
 
 
 # MongoDB env vars
-NOSQL_USER = os.environ.get('NOSQL_USER', '')
-NOSQL_PASS = os.environ.get('NOSQL_PASS', '')
-NOSQL_PORT = os.environ.get('NOSQL_PORT', '27017')
-NOSQL_HOST = os.environ.get('NOSQL_HOST', 'mongo_db')
+NOSQL_USER = os.environ.get('NOSQL_USER2', '')
+NOSQL_PASS = os.environ.get('NOSQL_PASS2', '')
+NOSQL_PORT = os.environ.get('NOSQL_PORT2', 27017)
+NOSQL_HOST = os.environ.get('NOSQL_HOST2', 'mongo_db')
 
 
 def get_mongo_url():

@@ -1,0 +1,2 @@
+screen -dm bash -c "cd prometeo; sudo git pull; docker rmi $(docker images -q --filter "dangling=true"); sudo docker-compose up -d --build; sudo docker exec -it prometeo_server_1 bash scripts/run_crawl.sh $1 $2 '$3'"
+# cd prometeo/ && sudo git pull && cd .. && bash prometeo/scripts/start.sh

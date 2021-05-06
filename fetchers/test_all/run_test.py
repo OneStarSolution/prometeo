@@ -19,40 +19,28 @@ from fetchers.test_all.search_engines.ask_scraper import ask_scraper
 from fetchers.test_all.search_engines.bing_scraper import bing_scraper
 from fetchers.test_all.search_engines.info_scraper import info_scraper
 from fetchers.test_all.search_engines.google_scraper import google_scraper
-from fetchers.BBB.BBBFetcherController import BBBFetcherController
 
 
-def get_locations(redistribution_flag):
-
-    if redistribution_flag:
-        print("using redistributed zipcodes")
-        redistribution = []
-        if os.path.isfile('redistribution.txt'):
-            print("reading redistribution")
-            with open("redistribution.txt") as f:
-                redistribution = f.readlines()
-
-        for zipcode in redistribution:
-            yield zipcode
-
-        # This function finish here if redistribution_flag was set
-        return
-
-    print("using assigned zipcodes")
+def get_locations():
 
     with open('zipcodes_to_crawl.csv', 'r') as f:
         lines = [line.strip() for line in f.readlines()]
 
-    with open('cacities.csv', 'r') as f:
-        canada_lines = [line.replace('\n', '')[:-1]
-                        for line in f.readlines()]
+    # with open('CAN_city.csv', 'r') as f:
+    #     canada_lines = [line.replace('\n', '')[:-1]
+    #                     for line in f.readlines()]
 
-    for line in lines + canada_lines:
-        # for line in lines:
-        yield line.strip().replace('\n', '').replace('$', '')
+    # for line in lines + canada_lines:
+    for line in lines:
+        yield line
 
 
 space = "*" * 75
+
+# 'plumbing', 'restoration'
+verticals = ["garage door repair"]
+
+locations = ["80014", ]
 
 
 def create_driver():
@@ -238,7 +226,7 @@ def check_for_no_results(dict_one, dict_two, dict_three):
 
 
 def get_verticals_and_location_crawled():
-    filenames = os.listdir("data/enhanced")
+    filenames = os.listdir("data/test/enhanced")
 
     locations_and_verticals = set(
         [tuple(filename.split('/')[-1].split('-')[:2]) for filename in filenames])
@@ -251,8 +239,8 @@ def run(vertical, location):
         location = location.zfill(5) if location.isnumeric() else location
         vertical_and_location_name = vertical + '-' + location
 
-        print(space + "\n" "Current vertical: " + vertical +
-              "\n" + "Current location: " + location + "\n" + space)
+        # print(space + "\n" "Current vertical: " + vertical +
+        #       "\n" + "Current location: " + location + "\n" + space)
         # print("[*] Scraping for yelp urls [*]")
 
         # unique_yelp_url_list = yelp_url_scraper_test(
@@ -267,7 +255,7 @@ def run(vertical, location):
         # print("[*] Saving scraped yelp data [*]")
         # dictionary_dataframe = pd.DataFrame(new_yelp_leads)
         # dictionary_dataframe.to_excel(
-        #     "data/yelp_data/" + vertical + "-" + location + "-yelp_data.xlsx")
+        #     "data/test/yelp_data/" + vertical + "-" + location + "-yelp_data.xlsx")
         # print("Saved")
         # print("[*] Extracting phones and urls from yelp data [*]")
         # new_yelp_url_and_phones = []
@@ -281,21 +269,21 @@ def run(vertical, location):
         #         yelp_url_and_phone_dict["phone"] = phone_number
         #         yelp_url_and_phone_dict["yelp url"] = source_url
         #         new_yelp_url_and_phones.append(yelp_url_and_phone_dict)
+
+        new_yelp_url_and_phones = [{}]
         print("[*] Scraping for bbb Phones and urls [*]")
-        s = time.perf_counter()
-        bbb_crawler = BBBFetcherController()
-        job = {'country': 'USA', 'location': location,
-               'category': vertical}
-        new_bbb_url_and_phones = bbb_crawler._read_web(job)
-        e = time.perf_counter()
-        print("time crawling bbb:", e-s)
+        new_bbb_url_and_phones = bbb_url_and_phone_scraper(
+            driver, vertical, location)
+        if new_bbb_url_and_phones:
+            try:
+                pd.DataFrame(new_bbb_url_and_phones).to_csv(
+                    "data/test/bbb_results_{location}.csv")
+            except Exception as e:
+                print(e)
         print("[*] Scraping for yp phones and urls [*]")
         new_yp_url_and_phones = yp_url_and_phone_scraper(
             driver, vertical, location)
         print("[*] Checking for empty lists [*]")
-        # comment when you want to run yelp
-        new_yelp_url_and_phones = [{}]
-        # new_yp_url_and_phones = [{}]
         number_of_empty_lists = check_for_no_results(
             new_yelp_url_and_phones, new_bbb_url_and_phones, new_yp_url_and_phones)
         if number_of_empty_lists == 3:
@@ -309,7 +297,7 @@ def run(vertical, location):
             print("[*] Saving yelp, bbb and yp source phones and urls [*]")
             dictionary_dataframe = pd.DataFrame(de_duped_lead_list)
             dictionary_dataframe.to_excel(
-                "data/phones_urls/" + vertical.replace(" ", "_") + "-" + location + "-phones_and_urls.xlsx")
+                "data/test/phones_urls/" + vertical.replace(" ", "_") + "-" + location + "-phones_and_urls.xlsx")
             print("Saved")
             print(
                 "[*] Passing list of scraped phone numbers through the search engines [*]")
@@ -319,7 +307,7 @@ def run(vertical, location):
             print("[*] Saving enhanced phones and urls [*]")
             dictionary_dataframe = pd.DataFrame(enhanced_lead_data)
             dictionary_dataframe.to_excel(
-                "data/enhanced/" + vertical.replace(" ", "_") + "-" + location + "-phones_and_urls_enhanced.xlsx")
+                "data/test/enhanced/" + vertical.replace(" ", "_") + "-" + location + "-phones_and_urls_enhanced.xlsx")
             print("Saved")
         # post_enhancement_data_scrape(enhanced_lead_data)
     except Exception as e:
@@ -333,17 +321,7 @@ def main():
     parser = argparse.ArgumentParser(description='Process crawl params.')
     parser.add_argument('--workers', metavar='workers', type=int, dest="workers",
                         default=1, help='number of workers', required=False)
-    parser.add_argument('--redistribution', '-r', metavar='redistribution', type=bool,
-                        dest="redistribution", default=False,
-                        help='choose between run zipcodes assigned or the zipcodes redistributed')
-    parser.add_argument('--category', metavar='category_to_crawl', type=str,
-                        dest="category_to_crawl", help='category to crawl', required=True)
     args = parser.parse_args()
-
-    locations = get_locations(args.redistribution)
-    verticals = [args.category_to_crawl]
-
-    print(args.redistribution, args.category_to_crawl)
 
     print(f"\nRunning with {args.workers} workers\n")
 
@@ -356,11 +334,9 @@ def main():
     with ProcessPoolExecutor(max_workers=args.workers) as executor:
         for vertical in verticals:
             for location in locations:
-                vertical, location = vertical.replace(
-                    " ", "+"), location.replace(",", "%2C").replace(" ", "+").replace("\n", "")
-                if (vertical, location) in verticals_and_locations_crawled:
+                if (vertical.replace(" ", "_"), location) in verticals_and_locations_crawled:
                     continue
-                if limit >= 5000:
+                if limit >= 2500:
                     break
                 limit += 1
                 executor.submit(run, vertical, location)

@@ -4,11 +4,12 @@ services:
   server:
     build: ./
     # for future process
-    # command: python app/main.py
+    command: python webservice/main.py
     volumes:
       - ./:/app
     ports:
       - 8000:8000
+      - 80:80
     shm_size: 4gb
     stdin_open: true # docker run -i
     tty: true        # docker run -t

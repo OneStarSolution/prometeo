@@ -16,7 +16,7 @@ def split_file(path: str, chunks: int, chunk_to_keep: int):
     start = end - chunk_size
 
     lines = map(lambda x: x+'\n', lines[start: end])
-    with open('zipcodes_to_crawl.csv', 'w+') as f:
+    with open('cacities_tocrawl.csv', 'w+') as f:
         f.writelines(lines)
 
 # NOTE: Example: python scripts/split_file.py --path valid_zipcodes.csv --chunks 2 --keep 2

@@ -6,6 +6,9 @@ from fetchers.test_all.utils.duplicate_checker import duplicate_checker
 
 
 def yp_url_and_phone_scraper(driver, vertical, location):
+    print(
+        f"Starting YP In {location} - {vertical}")
+
     yp_url_list = []
     yp_phone_list = []
     new_lead_dict_list = []
@@ -13,7 +16,7 @@ def yp_url_and_phone_scraper(driver, vertical, location):
                  "vertical": "plumbing",
                  "mid_string": "&geo_location_terms=",
                  "location": "85033", "end_string": "&page=", "page": "1"}
-    for page in range(1, 16):  # set to 99, changed to 5 for testing purposes
+    for page in range(1, 100):  # set to 99, changed to 5 for testing purposes
         yp_url = yp_domain["domain"] + vertical + yp_domain["mid_string"] + \
             location + yp_domain["end_string"] + str(page)
 
@@ -79,5 +82,8 @@ def yp_url_and_phone_scraper(driver, vertical, location):
                                 new_lead_dict["yp url"] = source_url
                                 new_lead_dict["phone"] = phone_number
                                 new_lead_dict_list.append(new_lead_dict)
+
+    print(
+        f"YP In {location} - {vertical} got: {len(new_lead_dict_list)} new leads")
 
     return new_lead_dict_list
